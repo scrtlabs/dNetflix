@@ -11,3 +11,5 @@
 # IDEs
 *.iml
 .idea
+
+.vscode
