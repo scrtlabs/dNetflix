@@ -1,32 +1,20 @@
-use cosmwasm_std::{Addr, Storage};
-use cosmwasm_storage::{singleton, singleton_read, ReadonlySingleton, Singleton};
+use cosmwasm_std::{Addr, StdResult, Storage};
+use secret_toolkit::storage::{TypedStore, TypedStoreMut};
+use serde::{Deserialize, Serialize};
 
-pub const COUNT_KEY: &[u8] = b"count";
-pub const EXPIRATION_KEY: &[u8] = b"expire";
 pub const CONFIG_KEY: &[u8] = b"config";
 
+#[derive(Serialize, Deserialize)]
 pub struct Config {
-    pub access_token: String,
+    pub owner: Addr,
 }
 
 impl Config {
-    pub fn save<S: Storage>(&self, storage: &mut S) {
-        TypedStoreMut::attach(storage).save(CONFIG_KEY, self)
+    pub fn save(&self, storage: &mut dyn Storage) -> StdResult<()> {
+        TypedStoreMut::attach(storage).store(CONFIG_KEY, self)
     }
-}
 
-pub fn count(storage: &mut dyn Storage) -> Singleton<u64> {
-    singleton(storage, COUNT_KEY)
-}
-
-pub fn count_read(storage: &dyn Storage) -> ReadonlySingleton<u64> {
-    singleton_read(storage, COUNT_KEY)
-}
-
-pub fn expiration(storage: &mut dyn Storage) -> Singleton<u64> {
-    singleton(storage, EXPIRATION_KEY)
-}
-
-pub fn expiration_read(storage: &dyn Storage) -> ReadonlySingleton<u64> {
-    singleton_read(storage, EXPIRATION_KEY)
+    pub fn load(storage: &dyn Storage) -> StdResult<Config> {
+        TypedStore::attach(storage).load(CONFIG_KEY)
+    }
 }
