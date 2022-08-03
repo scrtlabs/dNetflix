@@ -4,87 +4,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum InstantiateMsg {
-    Counter {
-        counter: u64,
-        expires: u64,
-    },
-    AddAttributes {},
-    AddAttributesWithSubmessage {
-        id: u64,
-    },
-    AddPlaintextAttributes {},
-    AddPlaintextAttributesWithSubmessage {
-        id: u64,
-    },
-    AddEvents {},
-    AddEventsWithSubmessage {
-        id: u64,
-    },
-    AddMixedAttributesAndEvents {},
-    AddMixedAttributesAndEventsWithSubmessage {
-        id: u64,
-    },
-    MeasureGasForSubmessage {
-        id: u64,
-    },
-    // These were ported from the v0.10 test-contract:
-    Nop {},
-    Callback {
-        contract_addr: String,
-        code_hash: String,
-    },
-    CallbackContractError {
-        contract_addr: String,
-        code_hash: String,
-    },
-    ContractError {
-        error_type: String,
-    },
-    NoLogs {},
-    CallbackToInit {
-        code_id: u64,
-        code_hash: String,
-    },
-    CallbackBadParams {
-        contract_addr: String,
-        code_hash: String,
-    },
-    Panic {},
-    SendExternalQueryDepthCounter {
-        to: String,
-        depth: u8,
-        code_hash: String,
-    },
-    SendExternalQueryRecursionLimit {
-        to: String,
-        depth: u8,
-        code_hash: String,
-    },
-    CallToInit {
-        code_id: u64,
-        code_hash: String,
-        label: String,
-        msg: String,
-    },
-    CallToExec {
-        addr: String,
-        code_hash: String,
-        msg: String,
-    },
-    CallToQuery {
-        addr: String,
-        code_hash: String,
-        msg: String,
-    },
-    BankMsgSend {
-        amount: Vec<Coin>,
-        to: String,
-    },
-    BankMsgBurn {
-        amount: Vec<Coin>,
-    },
-    CosmosMsgCustom {},
+pub struct InstantiateMsg {
+    access_token_code_id: u32,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]

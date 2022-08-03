@@ -1,5 +1,5 @@
 [package]
-name = "v1-sanity-contract"
+name = "access-manager"
 version = "0.0.1"
 authors = ["SCRT Labs <info@scrtlabs.co>"]
 edition = "2018"
@@ -7,7 +7,7 @@ description = "A Test contract intended to use in system tests for the Secret Ne
 license = "MIT"
 exclude = [
   # Those files are cosmwasm-opt artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
-  "v1-sanity-contract.wasm",
+  "access-manager.wasm",
 ]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

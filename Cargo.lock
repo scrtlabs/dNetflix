@@ -3,6 +3,18 @@
 version = 3
 
 [[package]]
+name = "access-manager"
+version = "0.0.1"
+dependencies = [
+ "cosmwasm-std",
+ "cosmwasm-storage",
+ "schemars 0.7.6",
+ "secp256k1",
+ "serde",
+ "serde-json-wasm 0.2.3",
+]
+
+[[package]]
 name = "base16ct"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -635,18 +647,6 @@ name = "unicode-ident"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "15c61ba63f9235225a22310255a29b806b907c9b8c964bcbd0a2c70f3f2deea7"
-
-[[package]]
-name = "v1-sanity-contract"
-version = "0.0.1"
-dependencies = [
- "cosmwasm-std",
- "cosmwasm-storage",
- "schemars 0.7.6",
- "secp256k1",
- "serde",
- "serde-json-wasm 0.2.3",
-]
 
 [[package]]
 name = "version_check"
