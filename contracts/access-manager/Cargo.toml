@@ -33,7 +33,7 @@ with_floats = []
 [dependencies]
 cosmwasm-std = { git = "https://github.com/scrtlabs/cosmwasm", branch = "secret" }
 cosmwasm-storage = { git = "https://github.com/scrtlabs/cosmwasm", branch = "secret" }
-secret-toolkit = {git = "https://github.com/scrtlabs/secret-toolkit", branch = "cosmwasm-v1.0", default-features = false, features= ["storage"] }
+secret-toolkit = { git = "https://github.com/scrtlabs/secret-toolkit", branch = "cosmwasm-v1.0", default-features = false, features= ["storage", "utils"] }
 schemars = "0.8.1"
 serde = { version = "1.0.114", default-features = false, features = [
   "derive",
@@ -41,3 +41,4 @@ serde = { version = "1.0.114", default-features = false, features = [
 ] }
 serde-json-wasm = "0.2.1"
 secp256k1 = "0.20.3"
+snip721 = { path = "../snip721", package = "snip721-reference-impl" }
