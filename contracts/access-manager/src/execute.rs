@@ -1,10 +1,11 @@
 use cosmwasm_std::{
-    to_binary, CosmosMsg, DepsMut, MessageInfo, Response, StdResult, SubMsg, Uint128, WasmMsg,
+    to_binary, CosmosMsg, DepsMut, MessageInfo, Response, StdResult, SubMsg, WasmMsg,
 };
 
 use crate::{
     reply::ReplyId,
     state::{Config, Video, VideoID, VideoInfo},
+    types::Payment,
 };
 
 pub fn new_video(
@@ -12,7 +13,7 @@ pub fn new_video(
     info: MessageInfo,
     name: String,
     royalty_info: snip721::royalties::RoyaltyInfo,
-    price: Uint128,
+    price: Payment,
 ) -> StdResult<Response> {
     let config = Config::load(deps.storage)?;
     config.assert_owner(&info)?;

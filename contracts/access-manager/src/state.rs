@@ -1,10 +1,12 @@
-use cosmwasm_std::{Addr, MessageInfo, StdError, StdResult, Storage, Uint128};
+use cosmwasm_std::{Addr, MessageInfo, StdError, StdResult, Storage};
 use cosmwasm_storage::{PrefixedStorage, ReadonlyPrefixedStorage};
 use secret_toolkit::{
     storage::{TypedStore, TypedStoreMut},
     utils::types::{Contract, WasmCode},
 };
 use serde::{Deserialize, Serialize};
+
+use crate::types::Payment;
 
 pub const CONFIG_KEY: &[u8] = b"config";
 pub const VIDEOS_ID_KEY: &[u8] = b"videos_id";
@@ -96,5 +98,5 @@ impl Video {
 pub struct VideoInfo {
     pub name: String,
     pub royalty_info: snip721::royalties::RoyaltyInfo,
-    pub price: Uint128,
+    pub price: Payment,
 }
