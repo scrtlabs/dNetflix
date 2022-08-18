@@ -2,8 +2,8 @@ use cosmwasm_std::Uint128;
 use secret_toolkit::utils::types::Token;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Payment {
-    token: Token,
-    amount: Uint128,
+    pub token: Token,
+    pub amount: Uint128,
 }

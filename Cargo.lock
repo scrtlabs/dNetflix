@@ -790,6 +790,7 @@ version = "0.3.0"
 source = "git+https://github.com/scrtlabs/secret-toolkit?branch=cosmwasm-v1.0#f0d198b83151775997e0aa9a6c7e77f1076c96b1"
 dependencies = [
  "secret-toolkit-serialization 0.3.0 (git+https://github.com/scrtlabs/secret-toolkit?branch=cosmwasm-v1.0)",
+ "secret-toolkit-snip20",
  "secret-toolkit-storage 0.3.0 (git+https://github.com/scrtlabs/secret-toolkit?branch=cosmwasm-v1.0)",
  "secret-toolkit-utils 0.3.1 (git+https://github.com/scrtlabs/secret-toolkit?branch=cosmwasm-v1.0)",
 ]
@@ -839,6 +840,17 @@ dependencies = [
  "bincode2",
  "cosmwasm-std 1.0.0 (git+https://github.com/scrtlabs/cosmwasm?branch=secret)",
  "schemars 0.8.10",
+ "serde",
+]
+
+[[package]]
+name = "secret-toolkit-snip20"
+version = "0.3.0"
+source = "git+https://github.com/scrtlabs/secret-toolkit?branch=cosmwasm-v1.0#f0d198b83151775997e0aa9a6c7e77f1076c96b1"
+dependencies = [
+ "cosmwasm-std 1.0.0 (git+https://github.com/scrtlabs/cosmwasm?branch=secret)",
+ "schemars 0.8.10",
+ "secret-toolkit-utils 0.3.1 (git+https://github.com/scrtlabs/secret-toolkit?branch=cosmwasm-v1.0)",
  "serde",
 ]
 

@@ -12,6 +12,8 @@ pub const CONFIG_KEY: &[u8] = b"config";
 pub const VIDEOS_ID_KEY: &[u8] = b"videos_id";
 pub const VIDEOS_KEY: &[u8] = b"videos";
 
+pub const ACCEPTED_SNIP20_PREFIX: &[u8] = b"snip20";
+
 #[derive(Serialize, Deserialize)]
 pub struct Config {
     pub owner: Addr,
@@ -99,4 +101,22 @@ pub struct VideoInfo {
     pub name: String,
     pub royalty_info: snip721::royalties::RoyaltyInfo,
     pub price: Payment,
+}
+
+impl Payment {
+    pub fn register_snip20(storage: &mut dyn Storage, address: Addr) {
+        let mut snip20_store = PrefixedStorage::new(storage, ACCEPTED_SNIP20_PREFIX);
+        match snip20_store.get(address.as_bytes()) {
+            Some(_) => {}
+            None => snip20_store.set(address.as_bytes(), &[1]),
+        }
+    }
+
+    pub fn is_snip20_registered(storage: &dyn Storage, address: Addr) -> bool {
+        let snip20_store = ReadonlyPrefixedStorage::new(storage, ACCEPTED_SNIP20_PREFIX);
+        match snip20_store.get(address.as_bytes()) {
+            Some(_) => true,
+            None => false,
+        }
+    }
 }

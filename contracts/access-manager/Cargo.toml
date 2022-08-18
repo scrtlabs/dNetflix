@@ -33,7 +33,7 @@ with_floats = []
 [dependencies]
 cosmwasm-std = { git = "https://github.com/scrtlabs/cosmwasm", branch = "secret" }
 cosmwasm-storage = { git = "https://github.com/scrtlabs/cosmwasm", branch = "secret" }
-secret-toolkit = { git = "https://github.com/scrtlabs/secret-toolkit", branch = "cosmwasm-v1.0", default-features = false, features= ["storage", "utils"] }
+secret-toolkit = { git = "https://github.com/scrtlabs/secret-toolkit", branch = "cosmwasm-v1.0", default-features = false, features= ["storage", "utils", "snip20"] }
 # cw-utils = "0.14.0"
 cw-utils = { git = "https://github.com/scrtlabs/cw-plus" }
 schemars = "0.8.1"

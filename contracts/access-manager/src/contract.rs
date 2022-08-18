@@ -27,18 +27,13 @@ pub fn instantiate(
 }
 
 #[entry_point]
-pub fn execute(
-    deps: DepsMut,
-    _env: Env,
-    info: MessageInfo,
-    msg: ExecuteMsg,
-) -> StdResult<Response> {
+pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> StdResult<Response> {
     match msg {
         ExecuteMsg::NewVideo {
             name,
             royalty_info,
             price,
-        } => new_video(deps, info, name, royalty_info, price),
+        } => new_video(deps, info, env, name, royalty_info, price),
     }
 }
 
