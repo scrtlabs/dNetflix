@@ -39,6 +39,10 @@ impl Config {
 pub struct VideoID {}
 
 impl VideoID {
+    pub fn current(storage: &dyn Storage) -> StdResult<u128> {
+        TypedStore::attach(storage).load(VIDEOS_ID_KEY)
+    }
+
     pub fn load_and_increment(storage: &mut dyn Storage) -> StdResult<u128> {
         let mut id_store = TypedStoreMut::attach(storage);
         let new_id = match id_store.may_load(VIDEOS_ID_KEY)? {

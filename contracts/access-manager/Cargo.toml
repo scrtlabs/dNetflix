@@ -3,7 +3,7 @@ name = "access-manager"
 version = "0.0.1"
 authors = ["SCRT Labs <info@scrtlabs.co>"]
 edition = "2018"
-description = "A Test contract intended to use in system tests for the Secret Netowrk"
+description = ""
 license = "MIT"
 exclude = [
   # Those files are cosmwasm-opt artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
@@ -34,6 +34,8 @@ with_floats = []
 cosmwasm-std = { git = "https://github.com/scrtlabs/cosmwasm", branch = "secret" }
 cosmwasm-storage = { git = "https://github.com/scrtlabs/cosmwasm", branch = "secret" }
 secret-toolkit = { git = "https://github.com/scrtlabs/secret-toolkit", branch = "cosmwasm-v1.0", default-features = false, features= ["storage", "utils"] }
+# cw-utils = "0.14.0"
+cw-utils = { git = "https://github.com/scrtlabs/cw-plus" }
 schemars = "0.8.1"
 serde = { version = "1.0.114", default-features = false, features = [
   "derive",
@@ -41,4 +43,9 @@ serde = { version = "1.0.114", default-features = false, features = [
 ] }
 serde-json-wasm = "0.2.1"
 secp256k1 = "0.20.3"
+num-traits = "0.2"
+num-derive = "0.3"
 snip721 = { path = "../snip721", package = "snip721-reference-impl" }
+
+# [patch.crates-io]
+# cw-utils = { git = "https://github.com/scrtlabs/cw-plus" }
