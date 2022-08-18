@@ -43,11 +43,11 @@ impl Config {
 pub struct VideoID {}
 
 impl VideoID {
-    pub fn current(storage: &dyn Storage) -> StdResult<u128> {
+    pub fn current(storage: &dyn Storage) -> StdResult<u64> {
         TypedStore::attach(storage).load(VIDEOS_ID_KEY)
     }
 
-    pub fn load_and_increment(storage: &mut dyn Storage) -> StdResult<u128> {
+    pub fn load_and_increment(storage: &mut dyn Storage) -> StdResult<u64> {
         let mut id_store = TypedStoreMut::attach(storage);
         let new_id = match id_store.may_load(VIDEOS_ID_KEY)? {
             Some(id) => id + 1,
@@ -61,13 +61,13 @@ impl VideoID {
 
 #[derive(Serialize, Deserialize)]
 pub struct Video {
-    pub id: u128,
+    pub id: u64,
     pub access_token: Option<Contract>,
     pub info: VideoInfo,
 }
 
 impl Video {
-    pub fn new(id: u128, info: VideoInfo) -> Self {
+    pub fn new(id: u64, info: VideoInfo) -> Self {
         Self {
             id,
             access_token: None,
@@ -77,7 +77,7 @@ impl Video {
 
     pub fn load_and_set_address(
         storage: &mut dyn Storage,
-        id: u128,
+        id: u64,
         access_token: Contract,
     ) -> StdResult<()> {
         let mut video = Self::load(storage, id)?;
@@ -90,7 +90,7 @@ impl Video {
         TypedStoreMut::attach(&mut videos_store).store(&self.id.to_be_bytes(), self)
     }
 
-    pub fn load(storage: &dyn Storage, id: u128) -> StdResult<Self> {
+    pub fn load(storage: &dyn Storage, id: u64) -> StdResult<Self> {
         let videos_store = ReadonlyPrefixedStorage::new(storage, VIDEOS_KEY);
         TypedStore::attach(&videos_store).load(&id.to_be_bytes())
     }
