@@ -16,7 +16,7 @@ pub fn instantiate_access_token(deps: DepsMut, reply: Reply) -> StdResult<Respon
 
     let config = Config::load(deps.storage)?;
     let last_id = VideoID::current(deps.storage)?;
-    Video::load_and_set_address(
+    Video::load_and_set_token(
         deps.storage,
         last_id,
         Contract {

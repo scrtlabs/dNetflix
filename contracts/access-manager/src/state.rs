@@ -75,7 +75,7 @@ impl Video {
         }
     }
 
-    pub fn load_and_set_address(
+    pub fn load_and_set_token(
         storage: &mut dyn Storage,
         id: u64,
         access_token: Contract,
