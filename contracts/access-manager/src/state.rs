@@ -15,7 +15,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub const STORAGE_KEY: &'static [u8] = b"config";
+    const STORAGE_KEY: &'static [u8] = b"config";
 
     pub fn save(&self, storage: &mut dyn Storage) -> StdResult<()> {
         TypedStoreMut::attach(storage).store(Self::STORAGE_KEY, self)
@@ -58,31 +58,47 @@ impl VideoID {
 }
 
 #[derive(Serialize, Deserialize)]
+pub struct UninitializedVideo {
+    pub id: u64,
+    pub info: VideoInfo,
+}
+
+impl UninitializedVideo {
+    const STORAGE_KEY: &'static [u8] = b"uninitialized_video";
+
+    pub fn save(&self, storage: &mut dyn Storage) -> StdResult<()> {
+        TypedStoreMut::attach(storage).store(Self::STORAGE_KEY, self)
+    }
+
+    pub fn load(storage: &dyn Storage) -> StdResult<Self> {
+        TypedStore::attach(storage).load(Self::STORAGE_KEY)
+    }
+
+    pub fn remove(storage: &mut dyn Storage) {
+        TypedStoreMut::<Self>::attach(storage).remove(Self::STORAGE_KEY);
+    }
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct Video {
     pub id: u64,
-    pub access_token: Option<Contract>,
+    pub access_token: Contract,
     pub info: VideoInfo,
 }
 
 impl Video {
-    pub const STORAGE_KEY: &'static [u8] = b"videos";
+    const STORAGE_KEY: &'static [u8] = b"videos";
 
-    pub fn new(id: u64, info: VideoInfo) -> Self {
-        Self {
-            id,
-            access_token: None,
-            info,
-        }
-    }
-
-    pub fn load_and_set_token(
+    pub fn from_uninitialized(
         storage: &mut dyn Storage,
-        id: u64,
         access_token: Contract,
-    ) -> StdResult<()> {
-        let mut video = Self::load(storage, id)?;
-        video.access_token = Some(access_token);
-        video.save(storage)
+    ) -> StdResult<Self> {
+        let uninitialized = UninitializedVideo::load(storage)?;
+        Ok(Self {
+            id: uninitialized.id,
+            access_token,
+            info: uninitialized.info,
+        })
     }
 
     pub fn save(&self, storage: &mut dyn Storage) -> StdResult<()> {
@@ -104,7 +120,7 @@ pub struct VideoInfo {
 }
 
 impl Payment {
-    pub const STORAGE_PREFIX: &'static [u8] = b"snip20";
+    const STORAGE_PREFIX: &'static [u8] = b"snip20";
 
     pub fn register_snip20(storage: &mut dyn Storage, address: Addr) {
         let mut snip20_store = PrefixedStorage::new(storage, Self::STORAGE_PREFIX);

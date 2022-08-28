@@ -2,7 +2,7 @@ use cosmwasm_std::{DepsMut, Reply, Response, StdError, StdResult};
 use cw_utils::parse_reply_instantiate_data;
 use secret_toolkit::utils::types::Contract;
 
-use crate::state::{Config, Video, VideoID};
+use crate::state::{Config, UninitializedVideo, Video};
 
 #[derive(FromPrimitive, ToPrimitive)]
 pub enum ReplyId {
@@ -15,15 +15,15 @@ pub fn instantiate_access_token(deps: DepsMut, reply: Reply) -> StdResult<Respon
     })?;
 
     let config = Config::load(deps.storage)?;
-    let last_id = VideoID::current(deps.storage)?;
-    Video::load_and_set_token(
+    Video::from_uninitialized(
         deps.storage,
-        last_id,
         Contract {
             address: reply.contract_address.clone(),
             hash: config.access_token_wasm.hash,
         },
-    )?;
+    )?
+    .save(deps.storage)?;
+    UninitializedVideo::remove(deps.storage);
 
     Ok(Response::default().add_attribute_plaintext("new_video", reply.contract_address))
 }

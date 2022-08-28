@@ -5,7 +5,7 @@ use secret_toolkit::snip20;
 
 use crate::{
     reply::ReplyId,
-    state::{Config, Video, VideoID, VideoInfo},
+    state::{Config, UninitializedVideo, VideoID, VideoInfo},
     types::Payment,
 };
 
@@ -21,14 +21,14 @@ pub fn new_video(
     config.assert_owner(&info)?;
 
     let new_id = VideoID::load_and_increment(deps.storage)?;
-    Video::new(
-        new_id,
-        VideoInfo {
+    UninitializedVideo {
+        id: new_id,
+        info: VideoInfo {
             name: name.clone(),
             royalty_info: royalty_info.clone(),
             price: price.clone(),
         },
-    )
+    }
     .save(deps.storage)?;
 
     let mut response = Response::default();
