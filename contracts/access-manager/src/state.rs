@@ -8,12 +8,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::Payment;
 
-pub const CONFIG_KEY: &[u8] = b"config";
-pub const VIDEOS_ID_KEY: &[u8] = b"videos_id";
-pub const VIDEOS_KEY: &[u8] = b"videos";
-
-pub const ACCEPTED_SNIP20_PREFIX: &[u8] = b"snip20";
-
 #[derive(Serialize, Deserialize)]
 pub struct Config {
     pub owner: Addr,
@@ -21,12 +15,14 @@ pub struct Config {
 }
 
 impl Config {
+    pub const STORAGE_KEY: &'static [u8] = b"config";
+
     pub fn save(&self, storage: &mut dyn Storage) -> StdResult<()> {
-        TypedStoreMut::attach(storage).store(CONFIG_KEY, self)
+        TypedStoreMut::attach(storage).store(Self::STORAGE_KEY, self)
     }
 
     pub fn load(storage: &dyn Storage) -> StdResult<Self> {
-        TypedStore::attach(storage).load(CONFIG_KEY)
+        TypedStore::attach(storage).load(Self::STORAGE_KEY)
     }
 
     pub fn assert_owner(&self, info: &MessageInfo) -> StdResult<()> {
@@ -43,17 +39,19 @@ impl Config {
 pub struct VideoID {}
 
 impl VideoID {
+    const STORAGE_KEY: &'static [u8] = b"videos_id";
+
     pub fn current(storage: &dyn Storage) -> StdResult<u64> {
-        TypedStore::attach(storage).load(VIDEOS_ID_KEY)
+        TypedStore::attach(storage).load(Self::STORAGE_KEY)
     }
 
     pub fn load_and_increment(storage: &mut dyn Storage) -> StdResult<u64> {
         let mut id_store = TypedStoreMut::attach(storage);
-        let new_id = match id_store.may_load(VIDEOS_ID_KEY)? {
+        let new_id = match id_store.may_load(Self::STORAGE_KEY)? {
             Some(id) => id + 1,
             None => 1,
         };
-        id_store.store(VIDEOS_ID_KEY, &new_id)?;
+        id_store.store(Self::STORAGE_KEY, &new_id)?;
 
         Ok(new_id)
     }
@@ -67,6 +65,8 @@ pub struct Video {
 }
 
 impl Video {
+    pub const STORAGE_KEY: &'static [u8] = b"videos";
+
     pub fn new(id: u64, info: VideoInfo) -> Self {
         Self {
             id,
@@ -86,12 +86,12 @@ impl Video {
     }
 
     pub fn save(&self, storage: &mut dyn Storage) -> StdResult<()> {
-        let mut videos_store = PrefixedStorage::new(storage, VIDEOS_KEY);
+        let mut videos_store = PrefixedStorage::new(storage, Self::STORAGE_KEY);
         TypedStoreMut::attach(&mut videos_store).store(&self.id.to_be_bytes(), self)
     }
 
     pub fn load(storage: &dyn Storage, id: u64) -> StdResult<Self> {
-        let videos_store = ReadonlyPrefixedStorage::new(storage, VIDEOS_KEY);
+        let videos_store = ReadonlyPrefixedStorage::new(storage, Self::STORAGE_KEY);
         TypedStore::attach(&videos_store).load(&id.to_be_bytes())
     }
 }
@@ -104,8 +104,10 @@ pub struct VideoInfo {
 }
 
 impl Payment {
+    pub const STORAGE_PREFIX: &'static [u8] = b"snip20";
+
     pub fn register_snip20(storage: &mut dyn Storage, address: Addr) {
-        let mut snip20_store = PrefixedStorage::new(storage, ACCEPTED_SNIP20_PREFIX);
+        let mut snip20_store = PrefixedStorage::new(storage, Self::STORAGE_PREFIX);
         match snip20_store.get(address.as_bytes()) {
             Some(_) => {}
             None => snip20_store.set(address.as_bytes(), &[1]),
@@ -113,7 +115,7 @@ impl Payment {
     }
 
     pub fn is_snip20_registered(storage: &dyn Storage, address: Addr) -> bool {
-        let snip20_store = ReadonlyPrefixedStorage::new(storage, ACCEPTED_SNIP20_PREFIX);
+        let snip20_store = ReadonlyPrefixedStorage::new(storage, Self::STORAGE_PREFIX);
         match snip20_store.get(address.as_bytes()) {
             Some(_) => true,
             None => false,
