@@ -4,7 +4,7 @@ use cosmwasm_std::{
 use num_traits::FromPrimitive;
 
 use crate::{
-    execute::{new_video, purchase_video},
+    execute::{new_video, purchase_video_native, purchase_video_snip20},
     msg::{ExecuteMsg, InstantiateMsg, QueryMsg},
     reply::{instantiate_access_token, ReplyId},
     state::Config,
@@ -43,10 +43,10 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
             crate::msg::ReceiveMsg::PurchaseVideo { video_id } => {
                 let sender = deps.api.addr_validate(&sender)?;
                 let from = deps.api.addr_validate(&from)?;
-                purchase_video(deps, info, env, sender, from, amount.u128(), video_id)
+                purchase_video_snip20(deps, info, env, sender, from, amount.u128(), video_id)
             }
         },
-        ExecuteMsg::PurchaseVideo { video_id } => todo!(),
+        ExecuteMsg::PurchaseVideo { video_id } => purchase_video_native(deps, info, env, video_id),
     }
 }
 

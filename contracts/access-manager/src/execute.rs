@@ -1,6 +1,6 @@
 use cosmwasm_std::{
-    to_binary, Addr, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdError, StdResult, SubMsg,
-    Uint128, WasmMsg,
+    coins, to_binary, Addr, BankMsg, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdError,
+    StdResult, SubMsg, Uint128, WasmMsg,
 };
 use primitive_types::U256;
 use secret_toolkit::{
@@ -40,25 +40,22 @@ pub fn new_video(
     .save(deps.storage)?;
 
     let mut response = Response::default();
-    match price.token {
-        Token::Snip20(contract) => {
-            let address = deps.api.addr_validate(&contract.address)?;
+    if let Token::Snip20(contract) = price.token {
+        let address = deps.api.addr_validate(&contract.address)?;
 
-            if !Payment::is_snip20_registered(deps.storage, address.clone()) {
-                Payment::register_snip20(deps.storage, address);
+        if !Payment::is_snip20_registered(deps.storage, address.clone()) {
+            Payment::register_snip20(deps.storage, address);
 
-                response
-                    .messages
-                    .push(SubMsg::new(snip20::register_receive_msg(
-                        env.contract.code_hash,
-                        None, // No need for padding here since it's going to be public anyway
-                        1,    // No need for padding here since it's going to be public anyway
-                        contract.hash,
-                        contract.address,
-                    )?));
-            }
+            response
+                .messages
+                .push(SubMsg::new(snip20::register_receive_msg(
+                    env.contract.code_hash,
+                    None, // No need for padding here since it's going to be public anyway
+                    1,    // No need for padding here since it's going to be public anyway
+                    contract.hash,
+                    contract.address,
+                )?));
         }
-        Token::Native(_) => {}
     }
 
     Ok(response.add_submessage(SubMsg::reply_on_success(
@@ -81,7 +78,7 @@ pub fn new_video(
     )))
 }
 
-pub fn purchase_video(
+pub fn purchase_video_snip20(
     deps: DepsMut,
     info: MessageInfo,
     _env: Env,
@@ -96,41 +93,52 @@ pub fn purchase_video(
     if video.info.price.amount.u128() != amount {
         return Err(StdError::generic_err("invalid amount"));
     }
-    let royalty_distribution = match &video.info.price.token {
-        Token::Snip20(contract) => {
-            let payment_address = deps.api.addr_validate(&contract.address)?;
-            if payment_address != info.sender {
-                return Err(StdError::generic_err("invalid payment method"));
-            }
-
+    let royalty_distribution = if let Token::Snip20(contract) = &video.info.price.token {
+        let payment_address = deps.api.addr_validate(&contract.address)?;
+        if payment_address != info.sender {
+            Err(StdError::generic_err("invalid payment method"))
+        } else {
             create_royalty_distribution_snip20(&video.info.royalty_info, amount, contract)
         }
-        Token::Native(_) => {
-            return Err(StdError::generic_err("invalid payment method"));
-        }
+    } else {
+        Err(StdError::generic_err("invalid payment method"))
     }?;
 
     Ok(purchase_video_impl(&video, &from)?.add_messages(royalty_distribution))
 }
 
-fn purchase_video_impl(video: &Video, purchaser: &Addr) -> StdResult<Response> {
-    Ok(
-        Response::default().add_message(secret_toolkit::snip721::batch_mint_nft_msg(
-            vec![Mint {
-                token_id: None,
-                owner: Some(purchaser.into()),
-                public_metadata: todo!(),
-                private_metadata: todo!(),
-                memo: None,
-            }],
-            None,
-            BLOCK_SIZE,
-            video.access_token.hash,
-            video.access_token.address,
-        )?),
-    )
+pub fn purchase_video_native(
+    deps: DepsMut,
+    info: MessageInfo,
+    _env: Env,
+    video_id: u64,
+) -> StdResult<Response> {
+    let video = Video::load(deps.storage, video_id)?;
+
+    let royalty_distribution = if let Token::Native(denom) = &video.info.price.token {
+        let payment = info.funds.iter().find(|c| c.denom == *denom);
+        if let Some(payment) = payment {
+            if payment.amount != video.info.price.amount {
+                Err(StdError::generic_err("invalid amount"))
+            } else {
+                Ok(create_royalty_distribution_native(
+                    &video.info.royalty_info,
+                    payment.amount.u128(),
+                    denom,
+                ))
+            }
+        } else {
+            Err(StdError::generic_err("invalid payment method"))
+        }
+    } else {
+        Err(StdError::generic_err("invalid payment method"))
+    }?;
+
+    Ok(purchase_video_impl(&video, &info.sender)?.add_messages(royalty_distribution))
 }
 
+// todo put the create_royalty_distribution() functions in a more appropriate place
+// (e.g. in as impl{} block of RoylatyInfo)
 fn create_royalty_distribution_snip20(
     royalties: &snip721::royalties::RoyaltyInfo,
     amount: u128,
@@ -153,4 +161,40 @@ fn create_royalty_distribution_snip20(
     }
 
     Ok(messages)
+}
+
+fn create_royalty_distribution_native(
+    royalties: &snip721::royalties::RoyaltyInfo,
+    amount: u128,
+    denom: &String,
+) -> Vec<CosmosMsg> {
+    let mut messages = vec![];
+    for royalty in &royalties.royalties {
+        let amount = U256::from(amount) * U256::from(royalty.rate)
+            / U256::from(10u128).pow(U256::from(royalties.decimal_places_in_rates));
+        messages.push(CosmosMsg::Bank(BankMsg::Send {
+            to_address: royalty.recipient.to_string(),
+            amount: coins(amount.as_u128(), denom),
+        }));
+    }
+
+    messages
+}
+
+fn purchase_video_impl(video: &Video, purchaser: &Addr) -> StdResult<Response> {
+    Ok(
+        Response::default().add_message(secret_toolkit::snip721::batch_mint_nft_msg(
+            vec![Mint {
+                token_id: None,
+                owner: Some(purchaser.into()),
+                public_metadata: todo!(),
+                private_metadata: todo!(),
+                memo: None,
+            }],
+            None,
+            BLOCK_SIZE,
+            video.access_token.hash,
+            video.access_token.address,
+        )?),
+    )
 }
