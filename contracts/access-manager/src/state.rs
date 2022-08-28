@@ -132,9 +132,6 @@ impl Payment {
 
     pub fn is_snip20_registered(storage: &dyn Storage, address: Addr) -> bool {
         let snip20_store = ReadonlyPrefixedStorage::new(storage, Self::STORAGE_PREFIX);
-        match snip20_store.get(address.as_bytes()) {
-            Some(_) => true,
-            None => false,
-        }
+        snip20_store.get(address.as_bytes()).is_some()
     }
 }

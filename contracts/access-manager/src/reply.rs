@@ -10,9 +10,8 @@ pub enum ReplyId {
 }
 
 pub fn instantiate_access_token(deps: DepsMut, reply: Reply) -> StdResult<Response> {
-    let reply = parse_reply_instantiate_data(reply).map_err(|e| {
-        StdError::generic_err(format!("error parsing reply error: {}", e.to_string()))
-    })?;
+    let reply = parse_reply_instantiate_data(reply)
+        .map_err(|e| StdError::generic_err(format!("error parsing reply error: {}", e)))?;
 
     let config = Config::load(deps.storage)?;
     Video::from_uninitialized(

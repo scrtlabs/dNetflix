@@ -46,6 +46,6 @@ pub fn query(_deps: Deps, _env: Env, _msg: QueryMsg) -> StdResult<Binary> {
 pub fn reply(deps: DepsMut, _env: Env, reply: Reply) -> StdResult<Response> {
     match FromPrimitive::from_u64(reply.id) {
         Some(ReplyId::InstantiateAccessToken) => instantiate_access_token(deps, reply),
-        None => return Err(StdError::generic_err("invalid reply id")),
+        None => Err(StdError::generic_err("invalid reply id")),
     }
 }
