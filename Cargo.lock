@@ -11,6 +11,7 @@ dependencies = [
  "cw-utils",
  "num-derive",
  "num-traits",
+ "primitive-types 0.11.1",
  "schemars 0.8.10",
  "secp256k1",
  "secret-toolkit 0.3.0 (git+https://github.com/scrtlabs/secret-toolkit?branch=cosmwasm-v1.0)",
@@ -580,6 +581,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "primitive-types"
+version = "0.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e28720988bff275df1f51b171e1b2a18c30d194c4d2b61defdacecd625a5d94a"
+dependencies = [
+ "fixed-hash",
+ "uint",
+]
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -791,6 +802,7 @@ source = "git+https://github.com/scrtlabs/secret-toolkit?branch=cosmwasm-v1.0#f0
 dependencies = [
  "secret-toolkit-serialization 0.3.0 (git+https://github.com/scrtlabs/secret-toolkit?branch=cosmwasm-v1.0)",
  "secret-toolkit-snip20",
+ "secret-toolkit-snip721",
  "secret-toolkit-storage 0.3.0 (git+https://github.com/scrtlabs/secret-toolkit?branch=cosmwasm-v1.0)",
  "secret-toolkit-utils 0.3.1 (git+https://github.com/scrtlabs/secret-toolkit?branch=cosmwasm-v1.0)",
 ]
@@ -845,6 +857,17 @@ dependencies = [
 
 [[package]]
 name = "secret-toolkit-snip20"
+version = "0.3.0"
+source = "git+https://github.com/scrtlabs/secret-toolkit?branch=cosmwasm-v1.0#f0d198b83151775997e0aa9a6c7e77f1076c96b1"
+dependencies = [
+ "cosmwasm-std 1.0.0 (git+https://github.com/scrtlabs/cosmwasm?branch=secret)",
+ "schemars 0.8.10",
+ "secret-toolkit-utils 0.3.1 (git+https://github.com/scrtlabs/secret-toolkit?branch=cosmwasm-v1.0)",
+ "serde",
+]
+
+[[package]]
+name = "secret-toolkit-snip721"
 version = "0.3.0"
 source = "git+https://github.com/scrtlabs/secret-toolkit?branch=cosmwasm-v1.0#f0d198b83151775997e0aa9a6c7e77f1076c96b1"
 dependencies = [
@@ -1030,7 +1053,7 @@ dependencies = [
  "bincode2",
  "cosmwasm-schema",
  "hex",
- "primitive-types",
+ "primitive-types 0.9.1",
  "rand_chacha",
  "rand_core 0.5.1",
  "schemars 0.7.6",
