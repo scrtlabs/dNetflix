@@ -1,6 +1,6 @@
-use cosmwasm_std::Uint128;
+use cosmwasm_std::{Addr, Uint128};
 use secret_toolkit::{serialization::Base64JsonOf, utils::types::WasmCode};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::types::Payment;
 
@@ -36,7 +36,21 @@ pub enum ExecuteMsg {
 
 #[derive(Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum QueryMsg {}
+pub enum QueryMsg {
+    VideoInfo { id: u64 },
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum QueryAnswer {
+    VideoInfo {
+        id: u64,
+        access_token: Addr,
+        name: String,
+        royalty_info: snip721::royalties::RoyaltyInfo,
+        price: Payment,
+    },
+}
 
 #[derive(Deserialize)]
 #[serde(rename_all = "snake_case")]

@@ -6,6 +6,7 @@ use num_traits::FromPrimitive;
 use crate::{
     execute::{new_video, purchase_video_native, purchase_video_snip20},
     msg::{ExecuteMsg, InstantiateMsg, QueryMsg},
+    query::video_info,
     reply::{instantiate_access_token, ReplyId},
     state::{Config, VideoInfo},
 };
@@ -64,8 +65,10 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
 }
 
 #[entry_point]
-pub fn query(_deps: Deps, _env: Env, _msg: QueryMsg) -> StdResult<Binary> {
-    unimplemented!()
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+    match msg {
+        QueryMsg::VideoInfo { id } => video_info(deps, id),
+    }
 }
 
 #[entry_point]
