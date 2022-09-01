@@ -37,6 +37,7 @@ pub enum ExecuteMsg {
 #[derive(Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
+    Owner {},
     VideoInfo { id: u64 },
 }
 
@@ -49,6 +50,9 @@ pub enum QueryAnswer {
         name: String,
         royalty_info: snip721::royalties::RoyaltyInfo,
         price: Payment,
+    },
+    Owner {
+        address: Addr,
     },
 }
 

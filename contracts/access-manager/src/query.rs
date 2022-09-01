@@ -1,6 +1,9 @@
 use cosmwasm_std::{to_binary, Binary, Deps, StdResult};
 
-use crate::{msg::QueryAnswer, state::Video};
+use crate::{
+    msg::QueryAnswer,
+    state::{Config, Video},
+};
 
 pub fn video_info(deps: Deps, id: u64) -> StdResult<Binary> {
     let video = Video::load(deps.storage, id)?;
@@ -11,5 +14,13 @@ pub fn video_info(deps: Deps, id: u64) -> StdResult<Binary> {
         name: video.info.name,
         royalty_info: video.info.royalty_info,
         price: video.info.price,
+    })
+}
+
+pub fn owner(deps: Deps) -> StdResult<Binary> {
+    let config = Config::load(deps.storage)?;
+
+    to_binary(&QueryAnswer::Owner {
+        address: config.owner,
     })
 }
