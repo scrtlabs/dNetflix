@@ -21,11 +21,7 @@ pub fn new_video(
     deps: DepsMut,
     info: MessageInfo,
     env: Env,
-    name: String,
-    royalty_info: snip721::royalties::RoyaltyInfo,
-    video_url: String,
-    decryption_key: String,
-    price: Payment,
+    video_info: VideoInfo,
 ) -> StdResult<Response> {
     let config = Config::load(deps.storage)?;
     config.assert_owner(&info)?;
@@ -33,18 +29,12 @@ pub fn new_video(
     let new_id = VideoID::load_and_increment(deps.storage)?;
     UninitializedVideo {
         id: new_id,
-        info: VideoInfo {
-            name: name.clone(),
-            royalty_info: royalty_info.clone(),
-            price: price.clone(),
-            video_url,
-            decryption_key,
-        },
+        info: video_info.clone(),
     }
     .save(deps.storage)?;
 
     let mut response = Response::default();
-    if let Token::Snip20(contract) = price.token {
+    if let Token::Snip20(contract) = video_info.price.token {
         let address = deps.api.addr_validate(&contract.address)?;
 
         if !Payment::is_snip20_registered(deps.storage, address.clone()) {
@@ -67,11 +57,11 @@ pub fn new_video(
             code_id: config.access_token_wasm.code_id,
             code_hash: config.access_token_wasm.hash,
             msg: to_binary(&snip721::msg::InitMsg {
-                name,
+                name: video_info.name,
                 symbol: "DNFLX-".to_string() + &new_id.to_string(),
                 admin: None,             // Defaults to sender i.e. this contract
                 entropy: "".to_string(), // todo fix
-                royalty_info: Some(royalty_info),
+                royalty_info: Some(video_info.royalty_info),
                 config: None,
                 post_init_callback: None,
             })?,

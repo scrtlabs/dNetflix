@@ -41,7 +41,7 @@ pub struct VideoID {}
 impl VideoID {
     const STORAGE_KEY: &'static [u8] = b"videos_id";
 
-    pub fn current(storage: &dyn Storage) -> StdResult<u64> {
+    pub fn _current(storage: &dyn Storage) -> StdResult<u64> {
         TypedStore::attach(storage).load(Self::STORAGE_KEY)
     }
 
@@ -112,7 +112,7 @@ impl Video {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct VideoInfo {
     pub name: String,
     pub royalty_info: snip721::royalties::RoyaltyInfo,

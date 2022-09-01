@@ -7,7 +7,7 @@ use crate::{
     execute::{new_video, purchase_video_native, purchase_video_snip20},
     msg::{ExecuteMsg, InstantiateMsg, QueryMsg},
     reply::{instantiate_access_token, ReplyId},
-    state::Config,
+    state::{Config, VideoInfo},
 };
 
 #[entry_point]
@@ -39,11 +39,13 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
             deps,
             info,
             env,
-            name,
-            royalty_info,
-            video_url,
-            decryption_key,
-            price,
+            VideoInfo {
+                name,
+                royalty_info,
+                video_url,
+                decryption_key,
+                price,
+            },
         ),
         ExecuteMsg::Receive {
             sender,
