@@ -5,7 +5,7 @@ use cosmwasm_std::{
 use primitive_types::U256;
 use secret_toolkit::{
     snip20,
-    snip721::Mint,
+    snip721::{Authentication, Extension, MediaFile, Metadata, Mint},
     utils::types::{Contract, Token},
 };
 
@@ -23,6 +23,8 @@ pub fn new_video(
     env: Env,
     name: String,
     royalty_info: snip721::royalties::RoyaltyInfo,
+    video_url: String,
+    decryption_key: String,
     price: Payment,
 ) -> StdResult<Response> {
     let config = Config::load(deps.storage)?;
@@ -35,6 +37,8 @@ pub fn new_video(
             name: name.clone(),
             royalty_info: royalty_info.clone(),
             price: price.clone(),
+            video_url,
+            decryption_key,
         },
     }
     .save(deps.storage)?;
@@ -187,14 +191,40 @@ fn purchase_video_impl(video: &Video, purchaser: &Addr) -> StdResult<Response> {
             vec![Mint {
                 token_id: None,
                 owner: Some(purchaser.into()),
-                public_metadata: todo!(),
-                private_metadata: todo!(),
+                public_metadata: Some(Metadata {
+                    token_uri: None,
+                    extension: None,
+                }),
+                private_metadata: Some(Metadata {
+                    token_uri: None,
+                    extension: Some(Extension {
+                        image: None,
+                        image_data: None,
+                        external_url: None,
+                        description: None,
+                        name: None,
+                        attributes: None,
+                        background_color: None,
+                        animation_url: None,
+                        youtube_url: None,
+                        media: Some(vec![MediaFile {
+                            file_type: Some("video".to_string()),
+                            extension: Some("mp4".to_string()),
+                            authentication: Some(Authentication {
+                                key: Some(video.info.decryption_key.clone()),
+                                user: None,
+                            }),
+                            url: video.info.video_url.clone(),
+                        }]),
+                        protected_attributes: None,
+                    }),
+                }),
                 memo: None,
             }],
             None,
             BLOCK_SIZE,
-            video.access_token.hash,
-            video.access_token.address,
+            video.access_token.hash.clone(),
+            video.access_token.address.clone(),
         )?),
     )
 }

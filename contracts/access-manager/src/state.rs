@@ -116,6 +116,8 @@ impl Video {
 pub struct VideoInfo {
     pub name: String,
     pub royalty_info: snip721::royalties::RoyaltyInfo,
+    pub video_url: String,
+    pub decryption_key: String,
     pub price: Payment,
 }
 

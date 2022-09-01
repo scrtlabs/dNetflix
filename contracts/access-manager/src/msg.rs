@@ -17,6 +17,8 @@ pub enum ExecuteMsg {
     NewVideo {
         name: String,
         royalty_info: snip721::royalties::RoyaltyInfo,
+        video_url: String,
+        decryption_key: String,
         price: Payment,
     },
     PurchaseVideo {
