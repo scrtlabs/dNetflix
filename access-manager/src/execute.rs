@@ -56,7 +56,7 @@ pub fn new_video(
         CosmosMsg::Wasm(WasmMsg::Instantiate {
             code_id: config.access_token_wasm.code_id,
             code_hash: config.access_token_wasm.hash,
-            msg: to_binary(&snip721::msg::InitMsg {
+            msg: to_binary(&snip721::types::InitMsg {
                 name: video_info.name,
                 symbol: "DNFLX-".to_string() + &new_id.to_string(),
                 admin: None,             // Defaults to sender i.e. this contract
@@ -134,7 +134,7 @@ pub fn purchase_video_native(
 // todo put the create_royalty_distribution() functions in a more appropriate place
 // (e.g. in as impl{} block of RoylatyInfo)
 fn create_royalty_distribution_snip20(
-    royalties: &snip721::royalties::RoyaltyInfo,
+    royalties: &snip721::types::RoyaltyInfo,
     amount: u128,
     token: &Contract,
 ) -> StdResult<Vec<CosmosMsg>> {
@@ -158,7 +158,7 @@ fn create_royalty_distribution_snip20(
 }
 
 fn create_royalty_distribution_native(
-    royalties: &snip721::royalties::RoyaltyInfo,
+    royalties: &snip721::types::RoyaltyInfo,
     amount: u128,
     denom: &String,
 ) -> Vec<CosmosMsg> {

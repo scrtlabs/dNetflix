@@ -16,7 +16,7 @@ pub struct InstantiateMsg {
 pub enum ExecuteMsg {
     NewVideo {
         name: String,
-        royalty_info: snip721::royalties::RoyaltyInfo,
+        royalty_info: snip721::types::RoyaltyInfo,
         video_url: String,
         decryption_key: String,
         price: Payment,
@@ -48,7 +48,7 @@ pub enum QueryAnswer {
         id: u64,
         access_token: Addr,
         name: String,
-        royalty_info: snip721::royalties::RoyaltyInfo,
+        royalty_info: snip721::types::RoyaltyInfo,
         price: Payment,
     },
     Owner {
