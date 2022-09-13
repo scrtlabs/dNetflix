@@ -1,4 +1,3 @@
 {
-  "makefile.extensionOutputFolder": "./.vscode",
-  "rust-analyzer.linkedProjects": ["access-manager/Cargo.toml"]
+  "makefile.extensionOutputFolder": "./.vscode"
 }
