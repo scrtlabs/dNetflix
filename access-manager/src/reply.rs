@@ -14,15 +14,15 @@ pub fn instantiate_access_token(deps: DepsMut, reply: Reply) -> StdResult<Respon
         .map_err(|e| StdError::generic_err(format!("error parsing reply error: {}", e)))?;
 
     let config = Config::load(deps.storage)?;
-    Video::from_uninitialized(
+    let video = Video::from_uninitialized(
         deps.storage,
         Contract {
-            address: reply.contract_address.clone(),
+            address: reply.contract_address,
             hash: config.access_token_wasm.hash,
         },
-    )?
-    .save(deps.storage)?;
+    )?;
+    video.save(deps.storage)?;
     UninitializedVideo::remove(deps.storage);
 
-    Ok(Response::default().add_attribute_plaintext("new_video", reply.contract_address))
+    Ok(Response::default().add_attribute_plaintext("new_video_id", video.id.to_string()))
 }
