@@ -1,6 +1,7 @@
 use cosmwasm_std::{Addr, MessageInfo, StdError, StdResult, Storage};
 use cosmwasm_storage::{PrefixedStorage, ReadonlyPrefixedStorage};
 use secret_toolkit::{
+    serialization::Json,
     storage::{TypedStore, TypedStoreMut},
     utils::types::{Contract, WasmCode},
 };
@@ -67,16 +68,26 @@ impl UninitializedVideo {
     const STORAGE_KEY: &'static [u8] = b"uninitialized_video";
 
     pub fn save(&self, storage: &mut dyn Storage) -> StdResult<()> {
-        TypedStoreMut::attach(storage).store(Self::STORAGE_KEY, self)
+        TypedStoreMut::attach_with_serialization(storage, Json).store(Self::STORAGE_KEY, self)
     }
 
     pub fn load(storage: &dyn Storage) -> StdResult<Self> {
-        TypedStore::attach(storage).load(Self::STORAGE_KEY)
+        TypedStore::attach_with_serialization(storage, Json).load(Self::STORAGE_KEY)
     }
 
     pub fn remove(storage: &mut dyn Storage) {
-        TypedStoreMut::<Self>::attach(storage).remove(Self::STORAGE_KEY);
+        TypedStoreMut::<Self, Json>::attach_with_serialization(storage, Json)
+            .remove(Self::STORAGE_KEY);
     }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct VideoInfo {
+    pub name: String,
+    pub royalty_info: snip721::types::RoyaltyInfo,
+    pub video_url: String,
+    pub decryption_key: String,
+    pub price: Payment,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -103,22 +114,14 @@ impl Video {
 
     pub fn save(&self, storage: &mut dyn Storage) -> StdResult<()> {
         let mut videos_store = PrefixedStorage::new(storage, Self::STORAGE_KEY);
-        TypedStoreMut::attach(&mut videos_store).store(&self.id.to_be_bytes(), self)
+        TypedStoreMut::attach_with_serialization(&mut videos_store, Json)
+            .store(&self.id.to_be_bytes(), self)
     }
 
     pub fn load(storage: &dyn Storage, id: u64) -> StdResult<Self> {
         let videos_store = ReadonlyPrefixedStorage::new(storage, Self::STORAGE_KEY);
-        TypedStore::attach(&videos_store).load(&id.to_be_bytes())
+        TypedStore::attach_with_serialization(&videos_store, Json).load(&id.to_be_bytes())
     }
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct VideoInfo {
-    pub name: String,
-    pub royalty_info: snip721::types::RoyaltyInfo,
-    pub video_url: String,
-    pub decryption_key: String,
-    pub price: Payment,
 }
 
 impl Payment {
