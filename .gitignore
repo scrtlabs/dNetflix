@@ -12,3 +12,7 @@ target
 *.iml
 .idea
 *.log
+
+# ssl keys
+*.key
+*.crt
