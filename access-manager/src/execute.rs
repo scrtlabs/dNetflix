@@ -189,7 +189,7 @@ fn purchase_video_impl(video: &Video, purchaser: &Addr) -> StdResult<Response> {
                     token_uri: None,
                     extension: Some(Extension {
                         image: None,
-                        image_data: None,
+                        image_data: Some(video.info.image_url.clone()),
                         external_url: None,
                         description: None,
                         name: None,

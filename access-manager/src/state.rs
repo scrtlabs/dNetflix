@@ -85,6 +85,7 @@ impl UninitializedVideo {
 pub struct VideoInfo {
     pub name: String,
     pub royalty_info: snip721::types::RoyaltyInfo,
+    pub image_url: String,
     pub video_url: String,
     pub decryption_key: String,
     pub price: Payment,

@@ -36,6 +36,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
             price,
             video_url,
             decryption_key,
+            image_url,
         } => execute::new_video(
             deps,
             info,
@@ -46,6 +47,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
                 video_url,
                 decryption_key,
                 price,
+                image_url,
             },
         ),
         ExecuteMsg::Receive {
