@@ -8,7 +8,7 @@ use crate::{
     msg::{ExecuteMsg, InstantiateMsg, QueryMsg, ReceiveMsg},
     query,
     reply::{instantiate_access_token, ReplyId},
-    state::{Config, VideoInfo},
+    state::{Config, VideoInfo, CONFIG},
 };
 
 #[entry_point]
@@ -18,11 +18,13 @@ pub fn instantiate(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> StdResult<Response> {
-    Config {
-        owner: info.sender,
-        access_token_wasm: msg.access_token_wasm,
-    }
-    .save(deps.storage)?;
+    CONFIG.save(
+        deps.storage,
+        &Config {
+            owner: info.sender,
+            access_token_wasm: msg.access_token_wasm,
+        },
+    )?;
 
     Ok(Response::default())
 }

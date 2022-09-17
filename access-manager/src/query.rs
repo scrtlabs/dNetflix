@@ -1,12 +1,20 @@
-use cosmwasm_std::{to_binary, Binary, Deps, StdResult};
+use cosmwasm_std::{to_binary, Binary, Deps, StdError, StdResult};
 
 use crate::{
     msg::QueryAnswer,
-    state::{Config, Video},
+    state::{CONFIG, VIDEOS},
 };
 
 pub fn video_info(deps: Deps, id: u64) -> StdResult<Binary> {
-    let video = Video::load(deps.storage, id)?;
+    let video = match VIDEOS.get(deps.storage, &id) {
+        Some(v) => v,
+        None => {
+            return Err(StdError::generic_err(format!(
+                "Video with id {} not found",
+                id
+            )))
+        }
+    };
 
     to_binary(&QueryAnswer::VideoInfo {
         id,
@@ -18,7 +26,7 @@ pub fn video_info(deps: Deps, id: u64) -> StdResult<Binary> {
 }
 
 pub fn owner(deps: Deps) -> StdResult<Binary> {
-    let config = Config::load(deps.storage)?;
+    let config = CONFIG.load(deps.storage)?;
 
     to_binary(&QueryAnswer::Owner {
         address: config.owner,

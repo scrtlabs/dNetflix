@@ -12,33 +12,34 @@ use secret_toolkit::{
 use crate::{
     constants::BLOCK_SIZE,
     reply::ReplyId,
-    state::{Config, UninitializedVideo, Video, VideoID, VideoInfo},
+    state::{get_next_video_id, UninitializedVideo, Video, VideoInfo, CONFIG, UNINIT_VID, VIDEOS},
     types::Payment,
 };
 
-// todo add a decryption key
 pub fn new_video(
     deps: DepsMut,
     info: MessageInfo,
     env: Env,
     video_info: VideoInfo,
 ) -> StdResult<Response> {
-    let config = Config::load(deps.storage)?;
+    let config = CONFIG.load(deps.storage)?;
     config.assert_owner(&info)?;
 
-    let new_id = VideoID::load_and_increment(deps.storage)?;
-    UninitializedVideo {
-        id: new_id,
-        info: video_info.clone(),
-    }
-    .save(deps.storage)?;
+    let new_id = get_next_video_id(deps.storage)?;
+    UNINIT_VID.save(
+        deps.storage,
+        &UninitializedVideo {
+            id: new_id,
+            info: video_info.clone(),
+        },
+    )?;
 
     let mut response = Response::default();
     if let Token::Snip20(contract) = video_info.price.token {
         let address = deps.api.addr_validate(&contract.address)?;
 
-        if !Payment::is_snip20_registered(deps.storage, address.clone()) {
-            Payment::register_snip20(deps.storage, address);
+        if !Payment::is_snip20_registered(deps.storage, address.clone())? {
+            Payment::register_snip20(deps.storage, address)?;
 
             response
                 .messages
@@ -81,7 +82,15 @@ pub fn purchase_video_snip20(
     amount: u128,
     video_id: u64,
 ) -> StdResult<Response> {
-    let video = Video::load(deps.storage, video_id)?;
+    let video = match VIDEOS.get(deps.storage, &video_id) {
+        Some(v) => v,
+        None => {
+            return Err(StdError::generic_err(format!(
+                "Video with id {} not found",
+                video_id
+            )))
+        }
+    };
 
     // Validate payment method
     if video.info.price.amount.u128() != amount {
@@ -107,7 +116,15 @@ pub fn purchase_video_native(
     _env: Env,
     video_id: u64,
 ) -> StdResult<Response> {
-    let video = Video::load(deps.storage, video_id)?;
+    let video = match VIDEOS.get(deps.storage, &video_id) {
+        Some(v) => v,
+        None => {
+            return Err(StdError::generic_err(format!(
+                "Video with id {} not found",
+                video_id
+            )))
+        }
+    };
 
     let royalty_distribution = if let Token::Native(denom) = &video.info.price.token {
         let payment = info.funds.iter().find(|c| c.denom == *denom);

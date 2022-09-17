@@ -1,8 +1,7 @@
 use cosmwasm_std::{Addr, MessageInfo, StdError, StdResult, Storage};
-use cosmwasm_storage::{PrefixedStorage, ReadonlyPrefixedStorage};
 use secret_toolkit::{
     serialization::Json,
-    storage::{TypedStore, TypedStoreMut},
+    storage::{Item, Keymap},
     utils::types::{Contract, WasmCode},
 };
 use serde::{Deserialize, Serialize};
@@ -15,17 +14,9 @@ pub struct Config {
     pub access_token_wasm: WasmCode,
 }
 
+pub const CONFIG: Item<Config> = Item::new(b"config");
+
 impl Config {
-    const STORAGE_KEY: &'static [u8] = b"config";
-
-    pub fn save(&self, storage: &mut dyn Storage) -> StdResult<()> {
-        TypedStoreMut::attach(storage).store(Self::STORAGE_KEY, self)
-    }
-
-    pub fn load(storage: &dyn Storage) -> StdResult<Self> {
-        TypedStore::attach(storage).load(Self::STORAGE_KEY)
-    }
-
     pub fn assert_owner(&self, info: &MessageInfo) -> StdResult<()> {
         if self.owner != info.sender {
             return Err(StdError::generic_err(
@@ -37,48 +28,16 @@ impl Config {
     }
 }
 
-pub struct VideoID {}
+const VIDEO_ID: Item<u64> = Item::new(b"videos_id");
 
-impl VideoID {
-    const STORAGE_KEY: &'static [u8] = b"videos_id";
+pub fn get_next_video_id(storage: &mut dyn Storage) -> StdResult<u64> {
+    let new_id = match VIDEO_ID.may_load(storage)? {
+        Some(id) => id + 1,
+        None => 1,
+    };
+    VIDEO_ID.save(storage, &new_id)?;
 
-    pub fn _current(storage: &dyn Storage) -> StdResult<u64> {
-        TypedStore::attach(storage).load(Self::STORAGE_KEY)
-    }
-
-    pub fn load_and_increment(storage: &mut dyn Storage) -> StdResult<u64> {
-        let mut id_store = TypedStoreMut::attach(storage);
-        let new_id = match id_store.may_load(Self::STORAGE_KEY)? {
-            Some(id) => id + 1,
-            None => 1,
-        };
-        id_store.store(Self::STORAGE_KEY, &new_id)?;
-
-        Ok(new_id)
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct UninitializedVideo {
-    pub id: u64,
-    pub info: VideoInfo,
-}
-
-impl UninitializedVideo {
-    const STORAGE_KEY: &'static [u8] = b"uninitialized_video";
-
-    pub fn save(&self, storage: &mut dyn Storage) -> StdResult<()> {
-        TypedStoreMut::attach_with_serialization(storage, Json).store(Self::STORAGE_KEY, self)
-    }
-
-    pub fn load(storage: &dyn Storage) -> StdResult<Self> {
-        TypedStore::attach_with_serialization(storage, Json).load(Self::STORAGE_KEY)
-    }
-
-    pub fn remove(storage: &mut dyn Storage) {
-        TypedStoreMut::<Self, Json>::attach_with_serialization(storage, Json)
-            .remove(Self::STORAGE_KEY);
-    }
+    Ok(new_id)
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -92,52 +51,49 @@ pub struct VideoInfo {
 }
 
 #[derive(Serialize, Deserialize)]
+pub struct UninitializedVideo {
+    pub id: u64,
+    pub info: VideoInfo,
+}
+
+pub const UNINIT_VID: Item<UninitializedVideo, Json> = Item::new(b"uninitialized_video");
+
+#[derive(Serialize, Deserialize)]
 pub struct Video {
     pub id: u64,
     pub access_token: Contract,
     pub info: VideoInfo,
 }
 
-impl Video {
-    const STORAGE_KEY: &'static [u8] = b"videos";
+pub const VIDEOS: Keymap<u64, Video, Json> = Keymap::new(b"videos");
 
+impl Video {
     pub fn from_uninitialized(
         storage: &mut dyn Storage,
         access_token: Contract,
     ) -> StdResult<Self> {
-        let uninitialized = UninitializedVideo::load(storage)?;
+        let uninitialized = UNINIT_VID.load(storage)?;
         Ok(Self {
             id: uninitialized.id,
             access_token,
             info: uninitialized.info,
         })
     }
-
-    pub fn save(&self, storage: &mut dyn Storage) -> StdResult<()> {
-        let mut videos_store = PrefixedStorage::new(storage, Self::STORAGE_KEY);
-        TypedStoreMut::attach_with_serialization(&mut videos_store, Json)
-            .store(&self.id.to_be_bytes(), self)
-    }
-
-    pub fn load(storage: &dyn Storage, id: u64) -> StdResult<Self> {
-        let videos_store = ReadonlyPrefixedStorage::new(storage, Self::STORAGE_KEY);
-        TypedStore::attach_with_serialization(&videos_store, Json).load(&id.to_be_bytes())
-    }
 }
 
-impl Payment {
-    const STORAGE_PREFIX: &'static [u8] = b"snip20";
+const REGISTERED_PAYMENT: Item<u8> = Item::new(b"registered_payment");
 
-    pub fn register_snip20(storage: &mut dyn Storage, address: Addr) {
-        let mut snip20_store = PrefixedStorage::new(storage, Self::STORAGE_PREFIX);
-        match snip20_store.get(address.as_bytes()) {
-            Some(_) => {}
-            None => snip20_store.set(address.as_bytes(), &[1]),
-        }
+impl Payment {
+    pub fn register_snip20(storage: &mut dyn Storage, address: Addr) -> StdResult<()> {
+        REGISTERED_PAYMENT
+            .add_suffix(address.as_bytes())
+            .save(storage, &1)
     }
 
-    pub fn is_snip20_registered(storage: &dyn Storage, address: Addr) -> bool {
-        let snip20_store = ReadonlyPrefixedStorage::new(storage, Self::STORAGE_PREFIX);
-        snip20_store.get(address.as_bytes()).is_some()
+    pub fn is_snip20_registered(storage: &dyn Storage, address: Addr) -> StdResult<bool> {
+        Ok(REGISTERED_PAYMENT
+            .add_suffix(address.as_bytes())
+            .may_load(storage)?
+            .is_some())
     }
 }
