@@ -1,5 +1,8 @@
 use cosmwasm_std::{Addr, Uint128};
-use secret_toolkit::{serialization::Base64JsonOf, utils::types::WasmCode};
+use secret_toolkit::{
+    serialization::Base64JsonOf,
+    utils::types::{Token, WasmCode},
+};
 use serde::{Deserialize, Serialize};
 
 use crate::types::Payment;
@@ -32,6 +35,13 @@ pub enum ExecuteMsg {
         from: String,
         amount: Uint128,
         msg: Base64JsonOf<ReceiveMsg>,
+    },
+
+    // Owner
+    WithdrawToken {
+        to_address: String,
+        token: Token,
+        amount: Uint128,
     },
 }
 

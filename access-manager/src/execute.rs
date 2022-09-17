@@ -76,8 +76,6 @@ pub fn new_video(
 pub fn purchase_video_snip20(
     deps: DepsMut,
     info: MessageInfo,
-    _env: Env,
-    _sender: Addr,
     from: Addr,
     amount: u128,
     video_id: u64,
@@ -113,7 +111,6 @@ pub fn purchase_video_snip20(
 pub fn purchase_video_native(
     deps: DepsMut,
     info: MessageInfo,
-    _env: Env,
     video_id: u64,
 ) -> StdResult<Response> {
     let video = match VIDEOS.get(deps.storage, &video_id) {
@@ -234,4 +231,33 @@ fn purchase_video_impl(video: &Video, purchaser: &Addr) -> StdResult<Response> {
             video.access_token.address.clone(),
         )?),
     )
+}
+
+pub fn withdraw_token(
+    deps: DepsMut,
+    info: MessageInfo,
+    to_address: String,
+    token: Token,
+    amount: Uint128,
+) -> StdResult<Response> {
+    let config = CONFIG.load(deps.storage)?;
+    config.assert_owner(&info)?;
+
+    let withdraw_msg = match token {
+        Token::Snip20(snip20) => snip20::transfer_msg(
+            to_address,
+            amount,
+            None,
+            None,
+            256,
+            snip20.hash,
+            snip20.address,
+        )?,
+        Token::Native(denom) => CosmosMsg::Bank(BankMsg::Send {
+            to_address,
+            amount: coins(amount.u128(), denom),
+        }),
+    };
+
+    Ok(Response::default().add_message(withdraw_msg))
 }

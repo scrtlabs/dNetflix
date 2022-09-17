@@ -4,7 +4,7 @@ use cosmwasm_std::{
 use num_traits::FromPrimitive;
 
 use crate::{
-    execute,
+    execute::{self, withdraw_token},
     msg::{ExecuteMsg, InstantiateMsg, QueryMsg, ReceiveMsg},
     query,
     reply::{instantiate_access_token, ReplyId},
@@ -18,6 +18,7 @@ pub fn instantiate(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> StdResult<Response> {
+    // todo use entropy
     CONFIG.save(
         deps.storage,
         &Config {
@@ -53,28 +54,21 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
             },
         ),
         ExecuteMsg::Receive {
-            sender,
-            from,
-            amount,
-            msg,
+            from, amount, msg, ..
         } => match msg.inner {
             ReceiveMsg::PurchaseVideo { video_id } => {
-                let sender = deps.api.addr_validate(&sender)?;
                 let from = deps.api.addr_validate(&from)?;
-                execute::purchase_video_snip20(
-                    deps,
-                    info,
-                    env,
-                    sender,
-                    from,
-                    amount.u128(),
-                    video_id,
-                )
+                execute::purchase_video_snip20(deps, info, from, amount.u128(), video_id)
             }
         },
         ExecuteMsg::PurchaseVideo { video_id } => {
-            execute::purchase_video_native(deps, info, env, video_id)
+            execute::purchase_video_native(deps, info, video_id)
         }
+        ExecuteMsg::WithdrawToken {
+            to_address,
+            token,
+            amount,
+        } => withdraw_token(deps, info, to_address, token, amount),
     }
 }
 
