@@ -1,5 +1,4 @@
-use cosmwasm_std::{DepsMut, Reply, Response, StdError, StdResult};
-use cw_utils::parse_reply_instantiate_data;
+use cosmwasm_std::{DepsMut, Response, StdError, StdResult, SubMsgResponse};
 use secret_toolkit::utils::types::Contract;
 
 use crate::state::{Video, CONFIG, UNINIT_VID, VIDEOS};
@@ -9,15 +8,32 @@ pub enum ReplyId {
     InstantiateAccessToken = 1,
 }
 
-pub fn instantiate_access_token(deps: DepsMut, reply: Reply) -> StdResult<Response> {
-    let reply = parse_reply_instantiate_data(reply)
-        .map_err(|e| StdError::generic_err(format!("error parsing reply error: {}", e)))?;
+pub fn instantiate_access_token(deps: DepsMut, reply: SubMsgResponse) -> StdResult<Response> {
+    if reply.events.len() == 0 {
+        return Err(StdError::generic_err(format!(
+            "Init didn't response with contract address",
+        )));
+    }
 
+    if reply.events[0].attributes.len() == 0 {
+        return Err(StdError::generic_err(format!(
+            "Init didn't response with contract address",
+        )));
+    }
+
+    if reply.events[0].attributes[0].key != "contract_address" {
+        return Err(StdError::generic_err(format!(
+            "Init didn't response with contract address, key was {:?}",
+            reply.events[0].attributes[0].key,
+        )));
+    }
+
+    let contract_address = reply.events[0].attributes[0].value.clone();
     let config = CONFIG.load(deps.storage)?;
     let video = Video::from_uninitialized(
         deps.storage,
         Contract {
-            address: reply.contract_address,
+            address: contract_address,
             hash: config.access_token_wasm.hash,
         },
     )?;

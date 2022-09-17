@@ -6,9 +6,8 @@ version = 3
 name = "access-manager"
 version = "0.0.1"
 dependencies = [
- "cosmwasm-std 1.0.0 (git+https://github.com/scrtlabs/cosmwasm?branch=secret)",
+ "cosmwasm-std",
  "cosmwasm-storage",
- "cw-utils",
  "num-derive",
  "num-traits",
  "primitive-types 0.11.1",
@@ -108,19 +107,6 @@ checksum = "e4c78c047431fee22c1a7bb92e00ad095a02a983affe4d8a72e2a2c62c1b94f3"
 [[package]]
 name = "cosmwasm-crypto"
 version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5eb0afef2325df81aadbf9be1233f522ed8f6e91df870c764bc44cca2b1415bd"
-dependencies = [
- "digest",
- "ed25519-zebra",
- "k256",
- "rand_core 0.6.3",
- "thiserror",
-]
-
-[[package]]
-name = "cosmwasm-crypto"
-version = "1.0.0"
 source = "git+https://github.com/scrtlabs/cosmwasm?branch=secret#f7e2b1dbf11e113e258d796288752503a5012367"
 dependencies = [
  "digest",
@@ -134,15 +120,6 @@ dependencies = [
 name = "cosmwasm-derive"
 version = "1.0.0"
 source = "git+https://github.com/scrtlabs/cosmwasm?branch=secret#f7e2b1dbf11e113e258d796288752503a5012367"
-dependencies = [
- "syn",
-]
-
-[[package]]
-name = "cosmwasm-derive"
-version = "1.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0faf3a02389f78d6173b7e680751205015d5406f8abbaa9aa36fd216adc9f10d"
 dependencies = [
  "syn",
 ]
@@ -160,28 +137,11 @@ dependencies = [
 [[package]]
 name = "cosmwasm-std"
 version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "875994993c2082a6fcd406937bf0fca21c349e4a624f3810253a14fa83a3a195"
-dependencies = [
- "base64 0.13.0",
- "cosmwasm-crypto 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "cosmwasm-derive 1.1.1",
- "forward_ref",
- "schemars 0.8.10",
- "serde",
- "serde-json-wasm 0.4.1",
- "thiserror",
- "uint",
-]
-
-[[package]]
-name = "cosmwasm-std"
-version = "1.0.0"
 source = "git+https://github.com/scrtlabs/cosmwasm?branch=secret#f7e2b1dbf11e113e258d796288752503a5012367"
 dependencies = [
  "base64 0.13.0",
- "cosmwasm-crypto 1.0.0 (git+https://github.com/scrtlabs/cosmwasm?branch=secret)",
- "cosmwasm-derive 1.0.0",
+ "cosmwasm-crypto",
+ "cosmwasm-derive",
  "forward_ref",
  "schemars 0.8.10",
  "serde",
@@ -195,7 +155,7 @@ name = "cosmwasm-storage"
 version = "1.0.0"
 source = "git+https://github.com/scrtlabs/cosmwasm?branch=secret#f7e2b1dbf11e113e258d796288752503a5012367"
 dependencies = [
- "cosmwasm-std 1.0.0 (git+https://github.com/scrtlabs/cosmwasm?branch=secret)",
+ "cosmwasm-std",
  "serde",
 ]
 
@@ -247,40 +207,6 @@ dependencies = [
  "rand_core 0.5.1",
  "subtle",
  "zeroize",
-]
-
-[[package]]
-name = "cw-storage-plus"
-version = "0.14.0"
-source = "git+https://github.com/scrtlabs/cw-plus#17ce155f39df5d0f4bc5f8f8b129594235e25dbb"
-dependencies = [
- "cosmwasm-std 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "schemars 0.8.10",
- "serde",
-]
-
-[[package]]
-name = "cw-utils"
-version = "0.14.0"
-source = "git+https://github.com/scrtlabs/cw-plus#17ce155f39df5d0f4bc5f8f8b129594235e25dbb"
-dependencies = [
- "cosmwasm-std 1.0.0 (git+https://github.com/scrtlabs/cosmwasm?branch=secret)",
- "cw2",
- "schemars 0.8.10",
- "semver",
- "serde",
- "thiserror",
-]
-
-[[package]]
-name = "cw2"
-version = "0.14.0"
-source = "git+https://github.com/scrtlabs/cw-plus#17ce155f39df5d0f4bc5f8f8b129594235e25dbb"
-dependencies = [
- "cosmwasm-std 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "cw-storage-plus",
- "schemars 0.8.10",
- "serde",
 ]
 
 [[package]]
@@ -784,7 +710,7 @@ version = "0.3.0"
 source = "git+https://github.com/scrtlabs/secret-toolkit?branch=cosmwasm-v1.0#0d0531c83b429b54b01926d2cacbc0ed6e7893fd"
 dependencies = [
  "bincode2",
- "cosmwasm-std 1.0.0 (git+https://github.com/scrtlabs/cosmwasm?branch=secret)",
+ "cosmwasm-std",
  "schemars 0.8.10",
  "serde",
 ]
@@ -794,7 +720,7 @@ name = "secret-toolkit-snip20"
 version = "0.3.0"
 source = "git+https://github.com/scrtlabs/secret-toolkit?branch=cosmwasm-v1.0#0d0531c83b429b54b01926d2cacbc0ed6e7893fd"
 dependencies = [
- "cosmwasm-std 1.0.0 (git+https://github.com/scrtlabs/cosmwasm?branch=secret)",
+ "cosmwasm-std",
  "schemars 0.8.10",
  "secret-toolkit-utils 0.3.1 (git+https://github.com/scrtlabs/secret-toolkit?branch=cosmwasm-v1.0)",
  "serde",
@@ -805,7 +731,7 @@ name = "secret-toolkit-snip721"
 version = "0.3.0"
 source = "git+https://github.com/scrtlabs/secret-toolkit?branch=cosmwasm-v1.0#0d0531c83b429b54b01926d2cacbc0ed6e7893fd"
 dependencies = [
- "cosmwasm-std 1.0.0 (git+https://github.com/scrtlabs/cosmwasm?branch=secret)",
+ "cosmwasm-std",
  "schemars 0.8.10",
  "secret-toolkit-utils 0.3.1 (git+https://github.com/scrtlabs/secret-toolkit?branch=cosmwasm-v1.0)",
  "serde",
@@ -828,7 +754,7 @@ name = "secret-toolkit-storage"
 version = "0.5.0"
 source = "git+https://github.com/scrtlabs/secret-toolkit?branch=cosmwasm-v1.0#0d0531c83b429b54b01926d2cacbc0ed6e7893fd"
 dependencies = [
- "cosmwasm-std 1.0.0 (git+https://github.com/scrtlabs/cosmwasm?branch=secret)",
+ "cosmwasm-std",
  "cosmwasm-storage",
  "secret-toolkit-serialization 0.3.0 (git+https://github.com/scrtlabs/secret-toolkit?branch=cosmwasm-v1.0)",
  "serde",
@@ -851,17 +777,11 @@ name = "secret-toolkit-utils"
 version = "0.3.1"
 source = "git+https://github.com/scrtlabs/secret-toolkit?branch=cosmwasm-v1.0#0d0531c83b429b54b01926d2cacbc0ed6e7893fd"
 dependencies = [
- "cosmwasm-std 1.0.0 (git+https://github.com/scrtlabs/cosmwasm?branch=secret)",
+ "cosmwasm-std",
  "cosmwasm-storage",
  "schemars 0.8.10",
  "serde",
 ]
-
-[[package]]
-name = "semver"
-version = "1.0.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e25dfac463d778e353db5be2449d1cce89bd6fd23c9f1ea21310ce6e5a1b29c4"
 
 [[package]]
 name = "serde"
@@ -985,7 +905,7 @@ dependencies = [
  "base64 0.12.3",
  "bincode2",
  "cosmwasm-schema",
- "cosmwasm-std 1.0.0 (git+https://github.com/scrtlabs/cosmwasm?branch=secret)",
+ "cosmwasm-std",
  "hex",
  "primitive-types 0.9.1",
  "rand_chacha",

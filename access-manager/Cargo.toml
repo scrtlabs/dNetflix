@@ -39,7 +39,6 @@ secret-toolkit = { git = "https://github.com/scrtlabs/secret-toolkit", branch = 
   "snip20",
   "snip721",
 ] }
-cw-utils = { git = "https://github.com/scrtlabs/cw-plus" }
 schemars = "0.8.1"
 serde = { version = "1.0.114", default-features = false, features = [
   "derive",

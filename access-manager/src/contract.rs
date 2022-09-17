@@ -1,5 +1,6 @@
 use cosmwasm_std::{
     entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError, StdResult,
+    SubMsgResult,
 };
 use num_traits::FromPrimitive;
 
@@ -83,8 +84,16 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
 #[entry_point]
 pub fn reply(deps: DepsMut, _env: Env, reply: Reply) -> StdResult<Response> {
-    match FromPrimitive::from_u64(reply.id) {
-        Some(ReplyId::InstantiateAccessToken) => instantiate_access_token(deps, reply),
-        None => Err(StdError::generic_err("invalid reply id")),
+    match (FromPrimitive::from_u64(reply.id), reply.result) {
+        (Some(ReplyId::InstantiateAccessToken), SubMsgResult::Ok(reply)) => {
+            instantiate_access_token(deps, reply)
+        }
+        (None, SubMsgResult::Ok(_)) => Err(StdError::generic_err("invalid reply id")),
+        (None, SubMsgResult::Err(e)) => {
+            Err(StdError::generic_err(format!("error in submessage: {}", e)))
+        }
+        (Some(_), SubMsgResult::Err(e)) => {
+            Err(StdError::generic_err(format!("error in submessage: {}", e)))
+        }
     }
 }
