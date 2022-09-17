@@ -5,7 +5,7 @@ use secret_toolkit::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::types::Payment;
+use crate::{state::Video, types::Payment};
 
 #[derive(Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -50,6 +50,7 @@ pub enum ExecuteMsg {
 pub enum QueryMsg {
     Owner {},
     VideoInfo { id: u64 },
+    ListVideos { page: u32, page_size: u32 },
 }
 
 #[derive(Serialize)]
@@ -64,6 +65,9 @@ pub enum QueryAnswer {
     },
     Owner {
         address: Addr,
+    },
+    ListVideos {
+        videos: Vec<Video>,
     },
 }
 

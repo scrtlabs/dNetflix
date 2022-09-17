@@ -58,7 +58,7 @@ pub struct UninitializedVideo {
 
 pub const UNINIT_VID: Item<UninitializedVideo, Json> = Item::new(b"uninitialized_video");
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Video {
     pub id: u64,
     pub access_token: Contract,

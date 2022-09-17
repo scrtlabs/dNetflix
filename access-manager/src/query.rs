@@ -2,7 +2,7 @@ use cosmwasm_std::{to_binary, Binary, Deps, StdError, StdResult};
 
 use crate::{
     msg::QueryAnswer,
-    state::{CONFIG, VIDEOS},
+    state::{Video, CONFIG, VIDEOS},
 };
 
 pub fn video_info(deps: Deps, id: u64) -> StdResult<Binary> {
@@ -31,4 +31,11 @@ pub fn owner(deps: Deps) -> StdResult<Binary> {
     to_binary(&QueryAnswer::Owner {
         address: config.owner,
     })
+}
+
+pub fn list_videos(deps: Deps, page: u32, page_size: u32) -> StdResult<Binary> {
+    let videos = VIDEOS.paging(deps.storage, page, page_size)?;
+    let videos: Vec<Video> = videos.iter().map(|v| v.1.clone()).collect();
+
+    to_binary(&QueryAnswer::ListVideos { videos })
 }

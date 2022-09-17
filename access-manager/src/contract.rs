@@ -4,7 +4,7 @@ use cosmwasm_std::{
 use num_traits::FromPrimitive;
 
 use crate::{
-    execute::{self, withdraw_token},
+    execute,
     msg::{ExecuteMsg, InstantiateMsg, QueryMsg, ReceiveMsg},
     query,
     reply::{instantiate_access_token, ReplyId},
@@ -68,7 +68,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
             to_address,
             token,
             amount,
-        } => withdraw_token(deps, info, to_address, token, amount),
+        } => execute::withdraw_token(deps, info, to_address, token, amount),
     }
 }
 
@@ -77,6 +77,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::VideoInfo { id } => query::video_info(deps, id),
         QueryMsg::Owner {} => query::owner(deps),
+        QueryMsg::ListVideos { page, page_size } => query::list_videos(deps, page, page_size),
     }
 }
 
