@@ -3,7 +3,7 @@ require("dotenv").config();
 const fs = require("fs");
 const { SecretNetworkClient, Wallet } = require("secretjs");
 
-const PATH = "access_manager.wasm";
+const PATH = "snip721/snip721.wasm.gz";
 
 const printObj = (obj) => {
   console.log(JSON.stringify(obj, null, 2));
@@ -31,7 +31,7 @@ const printObj = (obj) => {
       builder: "",
       source: "",
     },
-    { gasLimit: 2_000_000 }
+    { gasLimit: 5_000_000 }
   );
   res = res.arrayLog.find((l) => l.key === "code_id");
   const codeId = parseInt(res.value);
