@@ -65,7 +65,7 @@ pub struct Video {
     pub info: VideoInfo,
 }
 
-pub const VIDEOS: Keymap<u64, Video, Json> = Keymap::new(b"videos");
+pub static VIDEOS: Keymap<u64, Video, Json> = Keymap::new(b"videos");
 
 impl Video {
     pub fn from_uninitialized(
