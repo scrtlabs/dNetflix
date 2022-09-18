@@ -2,6 +2,7 @@
 target
 *.wasm
 *.wasm.gz
+!snip721.wasm*
 
 # Text file backups
 **/*.rs.bk
