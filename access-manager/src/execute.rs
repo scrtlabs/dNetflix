@@ -16,14 +16,8 @@ use crate::{
     types::Payment,
 };
 
-pub fn new_video(
-    deps: DepsMut,
-    info: MessageInfo,
-    env: Env,
-    video_info: VideoInfo,
-) -> StdResult<Response> {
+pub fn new_video(deps: DepsMut, env: Env, video_info: VideoInfo) -> StdResult<Response> {
     let config = CONFIG.load(deps.storage)?;
-    config.assert_owner(&info)?;
 
     let new_id = get_next_video_id(deps.storage)?;
     UNINIT_VID.save(

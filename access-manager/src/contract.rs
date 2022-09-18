@@ -43,7 +43,6 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
             image_url,
         } => execute::new_video(
             deps,
-            info,
             env,
             VideoInfo {
                 name,
