@@ -33,6 +33,10 @@ const printObj = (obj) => {
     },
     { gasLimit: 2_000_000 }
   );
+  if (!res.arrayLog) {
+    console.log(`Error: ${res.rawLog}`);
+    process.exit(1);
+  }
   res = res.arrayLog.find((l) => l.key === "code_id");
   printObj(res);
   const codeId = parseInt(res.value);
@@ -52,6 +56,10 @@ const printObj = (obj) => {
     },
     { gasLimit: 500_000 }
   );
+  if (!res.arrayLog) {
+    console.log(`Error: ${res.rawLog}`);
+    process.exit(1);
+  }
   res = res.arrayLog.find(
     (l) => l.key === "contract_address" && l.type === "instantiate"
   );

@@ -33,6 +33,10 @@ const printObj = (obj) => {
     },
     { gasLimit: 5_000_000 }
   );
+  if (!res.arrayLog) {
+    console.log(`Error: ${res.rawLog}`);
+    process.exit(1);
+  }
   res = res.arrayLog.find((l) => l.key === "code_id");
   const codeId = parseInt(res.value);
   const codeHash = await client.query.compute.codeHash(codeId);

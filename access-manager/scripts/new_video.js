@@ -38,6 +38,10 @@ const printObj = (obj) => {
     },
     { gasLimit: 500_000 }
   );
+  if (!res.arrayLog) {
+    console.log(`Error: ${res.rawLog}`);
+    process.exit(1);
+  }
   res = res.arrayLog.find((l) => l.key === "new_video_id");
   printObj(res);
 })();
