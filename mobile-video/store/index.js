@@ -1,7 +1,5 @@
-import { getPermit, getTokens } from "../store/snip721-helper";
-import { Wallet, SecretNetworkClient } from "secretjs";
-import Cookies from 'js-cookie'
-const base64 = require('base-64');
+import { getVideoCollectionPermit, getVideoTokens } from "../store/snip721-helper";
+import { SecretNetworkClient } from "secretjs";
 
 export const state = () => ({
     secretjs: null,
@@ -15,20 +13,16 @@ export const state = () => ({
     noKeplr: false,
     walletAddress: "",
 
-    nftContract: {
-        address: process.env.NUXT_ENV_NFT_CONTRACT,
-        codeHash: process.env.NUXT_ENV_NFT_CONTRACT_CODE_HASH
+    accessManagerContract: {
+        address: process.env.NUXT_ENV_CONTRACT,
+        codeHash: process.env.NUXT_ENV_CONTRACT_CODE_HASH
     },
 
-    permit: "",
 
     loadingTokens: false,
     totalTokens: -1,
     loadedTokens: 0,            
-    collection: [],
-    allowToScan: false
-
-
+    videoCollection: [],
 });
 
 export const mutations = {
@@ -57,17 +51,9 @@ export const mutations = {
     setLoadedTokens(state, value) {
         state.loadedTokens = value;
     },
-    setCollection(state, value) {
-        state.collection = value;
+    setVideoCollection(state, value) {
+        state.videoCollection = value;
     },
-    setPermit(state, value) {
-        state.permit = value;
-    },
-    setAllowToScan(state, value) {
-        state.allowToScan = value;
-    }
-
-
 }
 
 export const actions = {
@@ -180,92 +166,87 @@ export const actions = {
         //setTimeout(keplrConnect, 1000);        
     },
 
-    async getCollection({ commit, state }, strPermit) {
+    async getVideoCollection({ commit, state }) {
+        commit('setVideoCollection', []);
         commit('setIsLoadingTokens', true);
         commit('setTotalTokens', -1);
         commit('setLoadedTokens', 0);
-        commit('setCollection', []);
 
-        var activeAddress = state.walletAddress;
-        var activePermit = "";
+        const msg = { list_videos: { page: 0, page_size: 100 } };
         var activeSecretjs = state.secretjs
 
-        var localCollection = [];
+        let localCollection = [];
 
-        if (strPermit) {
-            var p = base64.decode(decodeURIComponent(strPermit));
-            var wPermit = JSON.parse(p);
-            activeAddress = wPermit.address;
-            activePermit = wPermit.data;
-            Cookies.set('test-permit', strPermit, { expires: 7 });
+        let list = await activeSecretjs.query.compute.queryContract({
+            contractAddress: state.accessManagerContract.address,
+            codeHash: state.accessManagerContract.codeHash,
+            query: msg
+        });
 
-            // Create temp wallet
-            var wallet = new Wallet();
+        let videoList = list.list_videos.videos;
+        commit('setTotalTokens', videoList.length);
 
-            activeSecretjs = await SecretNetworkClient.create({
-                grpcWebUrl: state.grpcWebUrl,
-                chainId: state.chainId,
-                wallet: wallet,
-                walletAddress: wallet.address,
-            });
 
-        } else {
-            activePermit = await getPermit(state.secretjs, state.walletAddress, state.nftContract, state.chainId);
-            commit('setPermit', activePermit);
+        let NFTList = []; // To create one permit for all the collections, avoiding Keplr pop-up on every permit request
+        for (let i = 0; i < videoList.length; i++) {
+            localCollection.push( {
+                id: videoList[i].id,
+                name: videoList[i].info.name,
+                cover: videoList[i].info.image_url,
+                price: (videoList[i].info.price.amount / 1000000).toFixed(2),
+                token: {
+                    address: videoList[i].access_token.address,
+                    codeHash: videoList[i].access_token.hash
+                }
+            } );
+            NFTList.push(videoList[i].access_token.address);
         }
 
-        this.allowToScan = false;            
+        let videoPermit = await getVideoCollectionPermit(activeSecretjs, state.walletAddress, NFTList, state.chainId);
+        
+        for (var i = 0; i < localCollection.length; i++) {
+            try {
+                let tokens = await getVideoTokens(activeSecretjs, state.walletAddress, localCollection[i].token.address, videoPermit);
+                localCollection[i].purchesed = tokens.length > 0;
 
-        getTokens(activeSecretjs, activeAddress, state.nftContract, activePermit).then( async (tokens) => {
-            commit('setTotalTokens', tokens.length);
-
-            for (let i = 0; i < tokens.length; i++) {
-                const msg = {
-                    with_permit: {
-                        query: {
-                            nft_dossier: {
-                            token_id: tokens[i],
+                if (localCollection[i].purchesed) {
+                    const msg = {
+                        with_permit: {
+                            query: {
+                                nft_dossier: {
+                                token_id: tokens[0],
+                                },
                             },
+                            permit: videoPermit
                         },
-                        permit: activePermit
-                    },
-                };
-                let singleToken = await activeSecretjs.query.compute.queryContract({
-                    contractAddress: state.nftContract.address,
-                    codeHash: state.nftContract.codeHash,
-                    query: msg
-                });
-
-                try {
-                    var nft = {
-                        id: tokens[i],
-                        description: singleToken.nft_dossier.public_metadata.extension.description,
-                        public_img: singleToken.nft_dossier.public_metadata.extension.image,
-                        video: {
-                            url: "",
-                            key: ""
-                        }
-                    }
-
+                    };
+                    let singleToken = await activeSecretjs.query.compute.queryContract({
+                        contractAddress: localCollection[i].token.address,
+                        codeHash: localCollection[i].token.address.codeHash,
+                        query: msg
+                    });
+                    
                     var media = singleToken.nft_dossier.private_metadata.extension?.media
                     if (media) {
-                        for (let i = 0; i < media.length; i++ ) {
-                            if (media[i].file_type === "video" && media[i].extension === "m3u8") {
-                                nft.video.url = media[i].url;
-                                nft.video.key = media[i].authentication.key;
+                        for (let j = 0; j < media.length; j++ ) {
+                            if (media[j].file_type === "video" && media[j].extension === "mp4") {
+                                localCollection[i].video_url = media[j].url;
+                                localCollection[i].video_key = media[j].authentication.key;
                                 break; // Take only the 1st for the demo
                             }
                         }
                     }
-
-                    localCollection.push(nft);
-                    commit('setLoadedTokens', state.loadedTokens + 1);
-                } catch (err) {}
+                }
+            } catch (err) {
+                console.log(err);
             }
-            commit('setCollection', localCollection);
-            commit('setIsLoadingTokens', false);
-        });
-    }
+            commit('setLoadedTokens', state.loadedTokens + 1);                
+        }
+        commit('setVideoCollection', localCollection);
+        commit('setIsLoadingTokens', false);
+
+
+    },
 }
 
 var mobileAndTabletCheck = function () {
@@ -305,9 +286,6 @@ export const getters = {
     getChainId(state) {
         return state.chainId;
     }, 
-    getNFTContract(state) {
-        return state.nftContract;
-    },
     isLoadingTokens(state) {
         return state.loadingTokens;
     },
@@ -317,13 +295,7 @@ export const getters = {
     getLoadedTokens(state) {
         return state.loadedTokens;
     },
-    getCollection(state) {
-        return state.collection;
+    getVideoCollection(state) {
+        return state.videoCollection;
     },
-    getPermit(state) {
-        return state.permit;
-    },
-    getAllowToScan(state) {
-        return state.allowToScan;
-    }
 }

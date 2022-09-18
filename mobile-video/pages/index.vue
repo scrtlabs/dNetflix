@@ -1,42 +1,37 @@
 <template>
     <div class="main">
-        <template v-if="!walletAddress && !isMobile">
+        <template v-if="!walletAddress">
             <v-btn @click="connect">Connect Wallet</v-btn>
         </template>
         <template v-else>
-            <v-dialog v-model="showQRDialog" max-width="540">
-                <div style="display: flex; justify-content: center; align-items: center; flex-direction: column; background-color: black">
-                    <div style="font-size: 20px">Scan this QR code with your mobile device</div>
-                    <div style="background-color: white; padding: 20px; width: 540px; height: 540px">
-                        <qr-code :size="500"  :text="qrData"></qr-code>
-                    </div>
-                </div>
-            </v-dialog>
-
-            <div v-if="!isMobile">
+            <div>
                 Address: <span class="wallet">{{ walletAddress }}</span>
             </div>
-            <div style="margin-top: 10px">
-                <template v-if="balance > 0">
-                    <v-btn v-if="NFTs.length === 0 && !isMobile" @click="mint" :disabled="minting">{{ minting ? 'Minting...' : 'Mint' }}</v-btn>
-                    <v-btn v-if="NFTs.length > 0 && !isMobile" @click="showQRDialog = true">Open on mobile</v-btn>
-                    <template v-if="isMobile && allowToScan">
-                        <div style="display: flex; flex-direction: column; align-items: center">
-                            <div  v-if="!showQRScanner">Open my collection on your desktop and scan the code</div>
-                            <v-btn v-if="!showQRScanner" @click="showQRScanner = true">Scan</v-btn>
-                            
-                            <div style="margin-bottom: 20px" v-if="showQRScanner && cameraInfo != ''">{{ cameraInfo }}</div>
-                            <v-progress-circular v-if="waitingForQRScan && showQRScanner" :size="100" :width="12" color="orange" indeterminate></v-progress-circular>
-                            
-                            <qrcode-stream v-if="showQRScanner" @decode="onDecode" @init="onInit"></qrcode-stream>
-                        </div>
-                    </template>
-                </template>
-                <template v-else>
-                    <div>You don't have enough SCRT in your wallet</div>
-                </template>
+            <div style="text-align: center">
+                <v-btn @click="showAdd = !showAdd">{{ showAdd ? 'Close Video Adding Panel' : 'Add Video' }}</v-btn>
 
+                <v-expand-transition>
+                    <v-card width="500" style="margin-top: 10px" v-show="showAdd">
+                        <v-card-text>
+                            <v-text-field label="Video Name" v-model="newVideo.name"></v-text-field>
+                            <v-text-field label="Cover image URL" v-model="newVideo.image_url"></v-text-field>
+                            <v-text-field label="Video URL" v-model="newVideo.video_url"></v-text-field>
+                            <v-text-field label="Decryption Key" v-model="newVideo.decryption_key"></v-text-field>
+                            <div>
+                                <v-text-field label="Price" v-model="newVideo.price" suffix="$SCRT" type="number"></v-text-field>
+                                <v-slider v-model="newVideo.royalty" max="50" min="0" label="Royalty" thumb-color="green">
+                                    <template v-slot:thumb-label="{ value }"> {{ value }}% </template>
+                                </v-slider>
+                            </div>
+                        </v-card-text>
+                        <v-card-actions>
+                            <v-btn :disabled="adding" color="orange" text @click="addVideo"> {{ adding ? 'Wait...' : 'Add' }} </v-btn>
+                            <v-btn :disabled="adding" color="orange" text @click="clearForm"> Clear </v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-expand-transition>
             </div>
+
             <div>
                 <v-container v-if="loadingTokens">
                     <v-row align="center" no-gutters>
@@ -47,42 +42,51 @@
 
                     <v-row align="center" no-gutters style="margin-bottom: 10px">
                         <v-col>
-                            <v-progress-linear height="20" striped  color="deep-orange" v-model="progressBarValue" :active="true" :indeterminate="totalTokens < 0" :query="true"></v-progress-linear>
+                            <v-progress-linear
+                                height="20"
+                                striped
+                                color="deep-orange"
+                                v-model="progressBarValue"
+                                :active="true"
+                                :indeterminate="totalTokens < 0"
+                                :query="true"
+                            ></v-progress-linear>
                         </v-col>
                     </v-row>
 
                     <v-row align="center" no-gutters>
                         <v-col>
-                            <v-skeleton-loader class="mx-auto"  type="card" min-width="300" ></v-skeleton-loader>
+                            <v-skeleton-loader class="mx-auto" type="card" min-width="300"></v-skeleton-loader>
                         </v-col>
                     </v-row>
                 </v-container>
                 <v-container>
-                    <template v-if="isMobile && !loadingTokens && NFTs.length > 0 && !allowToScan">
-                        <div style="text-align: center; width: 100%">
-                            <v-btn @click="changeAllowToScan(true)">Scan Again</v-btn>
-                        </div>
-                    </template>
-                    
                     <v-row align="center" no-gutters>
-                        <v-col v-if="balance > 0 && !loadingTokens && NFTs.length == 0 ">
-                            No items, please mint one
-                        </v-col>
-                        <v-col v-for="(item, index) in NFTs" :key="'table_item_' + index" class="item" style="margin-right: 5px; margin-left: 5px">
-                            <v-card class="mx-auto my-12" width="300" >
-                                <a v-if="!(showVideoPlayer && playerIdx == index)" :href="getResource(item.public_img)" target="_"><img :src="getResource(item.public_img)" style="width: 300px" /></a>
+                        <v-col v-if="!loadingTokens && Videos.length == 0"> No videos available</v-col>
+                        <v-col v-for="(item, index) in Videos" :key="'table_item_' + index" class="item" style="margin-right: 5px; margin-left: 5px">
+                            <v-card class="mx-auto my-12" width="300">
+                                <a v-if="!(showVideoPlayer && playerIdx == index)" :href="getResource(item.cover)" target="_"
+                                    ><img :src="getResource(item.cover)" style="width: 300px"
+                                /></a>
                                 <div>
-                                    <mobile-video-player class="video-player" v-if="showVideoPlayer && playerIdx == index" @close="closeVideoPlayer" :source="selectedVideoSource" :videoKey="selectedVideoKey"></mobile-video-player>
+                                    <mobile-video-player
+                                        class="video-player"
+                                        v-if="showVideoPlayer && playerIdx == index"
+                                        @close="closeVideoPlayer"
+                                        :source="selectedVideoSource"
+                                        :videoKey="selectedVideoKey"
+                                    ></mobile-video-player>
                                 </div>
-                                <v-card-title> {{ item.description }} [{{ item.id }}] </v-card-title>
-                                <div class="buttons">
-                                    <v-btn :disabled="!item.video.url || !item.video.key" @click="playVideo(item.video.url, item.video.key, index)">Play Video</v-btn>
-                                </div>
+                                <v-card-title>Title: {{ item.name.toUpperCase() }}</v-card-title>
+                                <v-card-subtitle>{{ item.price }} SCRT</v-card-subtitle>
+                                <v-card-actions>
+                                    <v-btn v-if="item.purchesed === false" color="orange" :disabled="buying != -1" text @click="buy(item.id, item.price)">{{ buying == item.id ? 'Wait...' : 'Buy' }}</v-btn>
+                                    <v-btn v-if="item.purchesed === true" color="orange" :disabled="!item.video_url || !item.video_key" @click="playVideo(item.video_url, item.video_key, index)">Play Video</v-btn>
+                                </v-card-actions>
                             </v-card>
                         </v-col>
-                    </v-row>                    
+                    </v-row>
                 </v-container>
-
             </div>
         </template>
     </div>
@@ -90,41 +94,49 @@
 
 <script>
 import { mapGetters } from 'vuex';
-import { getPermit, getTokens, mintToken } from "../store/snip721-helper";
-var base64 = require('base-64');
-import Cookies from 'js-cookie'
-import { Wallet, SecretNetworkClient } from "secretjs";
 
 export default {
     name: 'IndexPage',
+    data() {
+        return {
+            playerIdx: -1,
+            showVideoPlayer: false,
+            selectedVideoSource: '',
+            selectedVideoKey: '',
+
+            minting: false,
+
+            showAdd: false,
+            buying: -1, 
+            adding: false,
+
+            newVideo: { // Dummy data for new video upload, it can be blank
+                name: '',
+                price: 1,
+                royalty: 15,
+                image_url: 'ipfs://QmaK5Y969GeFqcBmu5BAPWgXfwkU9hpQCYJRJyQdYtCBjz',
+                video_url: 'ipfs://QmVbKFQRNx166RuqyyEb8XMwnw7GY57g7sXgcmxxKrL9ms/main.m3u8',
+                decryption_key: 'UainRqKrHz_62Gfx0Qv4Hg'
+            }
+        };
+    },
     mounted() {
         var self = this;
 
         this.$nextTick(() => {
-            const permit = Cookies.get('test-permit')
-            if (this.$route.query.p != undefined) {
-                this.getNFTs(this.$route.query.p);
-            } else if (permit != undefined) {
-                this.getNFTs(permit);
-            } else {
-                this.$store.commit("setAllowToScan", true);
-            }
-
             var connectedBefore = window.localStorage.getItem('connectedBefore');
             if (connectedBefore) {
                 this.$store.dispatch('initKeplr');
-            }            
-            
-            this.$nuxt.$on('secretjs-loaded', async () => { 
-                self.getNFTs();
-                self.checkBalance();
+            }
+
+            this.$nuxt.$on('secretjs-loaded', async () => {
+                self.listVideos();
             });
 
-            this.$nuxt.$emit('keystorechange', async () => { 
-                self.getNFTs();
-                self.checkBalance();
+            // When changing account or cain in keplr
+            this.$nuxt.$emit('keystorechange', async () => {
+                self.listVideos();
             });
-            
         });
     },
     computed: {
@@ -133,83 +145,30 @@ export default {
             noKeplr: 'getNoKeplr',
             keplrLoading: 'getKeplrLoading',
             secretjs: 'getSecretJS',
-            nftContract: 'getNFTContract',
-            chainId: 'getChainId',
 
-            isMobile: "isMobile",
-
-            permit: "getPermit",
-
-            loadingTokens: "isLoadingTokens",
-            totalTokens: "getTotalTokens",
-            loadedTokens: "getLoadedTokens",            
-            NFTs: "getCollection",
-            allowToScan: "getAllowToScan"
-
+            loadingTokens: 'isLoadingTokens',
+            totalTokens: 'getTotalTokens',
+            loadedTokens: 'getLoadedTokens',
+            Videos: 'getVideoCollection',
         }),
         progressBarValue() {
             if (this.totalTokens <= 0) {
                 return 0;
             }
-            return ( (this.loadedTokens) / this.totalTokens) * 100;
+            return (this.loadedTokens / this.totalTokens) * 100;
         },
         loadingText() {
             if (this.totalTokens < 0) {
-                return "Looking for your items...";
+                return 'Looking for your items...';
             } else {
-                return `Loading ${Math.min(this.totalTokens, this.loadedTokens+1) } / ${this.totalTokens}...`;
+                return `Loading ${Math.min(this.totalTokens, this.loadedTokens + 1)} / ${this.totalTokens}...`;
             }
-        }, 
-        qrData() {
-
-            let wPermit = {
-                address: this.walletAddress,
-                data: this.permit
-            };
-
-            let p = base64.encode(JSON.stringify(wPermit));
-
-            let url = window.location.protocol + "//" + window.location.hostname;
-            if (window.location.port != '' && window.location.port != 443 && window.location.port != 80) {
-                url += ":" + window.location.port;
-            }
-            url += "?p=" + encodeURIComponent(p);
-            
-            return url;
-        },               
-    },
-    data() {
-        return {
-            showQRDialog: false, 
-
-
-            playerIdx: -1,
-            showVideoPlayer: false,
-            selectedVideoSource: "",
-            selectedVideoKey: "",
-
-            showQRScanner: false,
-            waitingForQRScan: true,
-            cameraInfo: "Waiting for camera...",
-
-            minting: false,
-
-            balance: 0
-
-
-        }
-    },
-    methods: {
-        async checkBalance() {
-            var answer = await this.secretjs.query.bank.balance(
-            {
-                address: this.walletAddress,
-                denom: "uscrt",
-            });
-            this.balance = answer.balance.amount;
         },
+    },
+
+    methods: {
         getResource(resource) {
-            resource = resource.replace("ipfs://", "");
+            resource = resource.replace('ipfs://', '');
             return `${process.env.NUXT_ENV_IPFS_GATEWAY_URL}/${resource}`;
         },
         playVideo(video, key, index) {
@@ -217,70 +176,81 @@ export default {
             this.selectedVideoKey = key;
             this.showVideoPlayer = true;
             this.playerIdx = index;
-        },        
+        },
         closeVideoPlayer() {
             this.showVideoPlayer = false;
             this.playerIdx = -1;
-        },        
+        },
         connect() {
             this.$store.dispatch('initKeplr');
         },
-        changeAllowToScan(value) {
-            this.$store.commit("setAllowToScan", value);
-        },
-        async mint() {
-            this.minting = true;
-            let result = await mintToken(this.secretjs, this.walletAddress, this.nftContract);
-            if (result) {
-                this.getNFTs();
-            }
-            this.minting = false;
+        async listVideos() {
+            this.$store.dispatch('getVideoCollection');
         },
 
-        async onInit (promise) {
-            console.log("on Init");
-            this.waitingForQRScan = true;            
-            this.cameraInfo = "Waiting for camera...";
+        async addVideo() {
+            this.adding = true;
+            let scrtPrice = parseInt(this.newVideo.price * 1000000).toString();
             try {
-                const { capabilities } = await promise
-
-            // successfully initialized
-            } catch (error) {
-                console.log(error);
-                if (error.name === 'NotAllowedError') {
-                    this.cameraInfo = "Please allow to use the camera";
-                } else if (error.name === 'NotFoundError') {
-                    this.cameraInfo = "Cannot detect camera";
-                } else if (error.name === 'NotSupportedError') {
-                    this.cameraInfo = "Cannot open camera under non-secure HTTP connection";
-                } else if (error.name === 'NotReadableError') {
-                    this.cameraInfo = "Cannot open camera";
-                } else if (error.name === 'OverconstrainedError') {
-                    this.cameraInfo = "Cannot open camera";
-                } else if (error.name === 'StreamApiNotSupportedError') {
-                    this.cameraInfo = "Cannot open camera";
-                }
-                this.waitingForQRScan = false;
-            } finally {
-                this.waitingForQRScan = false;
-                this.cameraInfo = "";
-            }
-        },
-        
-        onDecode(data) {
-            try {
-                if (data.indexOf("?p=") > 0) {
-                    let tmp = data.split('=');
-                    this.getNFTs(tmp[1]);
-                }
+                let res = await this.secretjs.tx.compute.executeContract(
+                    {
+                        contractAddress: process.env.NUXT_ENV_CONTRACT,
+                        msg: {
+                            new_video: {
+                                name: this.newVideo.name,
+                                royalty_info: {
+                                    decimal_places_in_rates: 2,
+                                    royalties: [{ recipient: this.walletAddress, rate: parseInt(this.newVideo.royalty) }]
+                                },
+                                image_url: 'ipfs://QmaK5Y969GeFqcBmu5BAPWgXfwkU9hpQCYJRJyQdYtCBjz',
+                                video_url: 'ipfs://QmVbKFQRNx166RuqyyEb8XMwnw7GY57g7sXgcmxxKrL9ms/main.m3u8',
+                                decryption_key: 'UainRqKrHz_62Gfx0Qv4Hg',
+                                price: { token: { native: 'uscrt' }, amount: scrtPrice }
+                            }
+                        },
+                        sender: this.walletAddress
+                    },
+                    { gasLimit: 500_000 }
+                );
+                this.listVideos();
+                console.log(res);
             } catch (err) {
                 console.log(err);
             }
-            this.showQRScanner = false;
-        },        
-        
-        async getNFTs(strPermit) {
-            this.$store.dispatch('getCollection', strPermit);
+            this.adding = false;            
+        },
+
+        clearForm() {
+            this.newVideo = {
+                name: '',
+                price: 1,
+                royalty: 15,
+                image_url: '',
+                video_url: '',
+                decryption_key: ''
+            };
+        },
+
+        async buy(id, price) {
+            this.buying = id;
+            let scrtPrice = parseInt(parseFloat(price) * 1000000).toString();
+            let res = await this.secretjs.tx.compute.executeContract(
+                {
+                contractAddress: process.env.NUXT_ENV_CONTRACT,
+                msg: {
+                    purchase_video: {
+                        video_id: id,
+                    },
+                },
+                sender: this.walletAddress,
+                sentFunds: [{ denom: "uscrt", amount: scrtPrice }],
+                },
+                { gasLimit: 500_000 }
+            );
+            res = res.arrayLog.find((l) => l.key === "minted");
+            this.buying = -1;
+            this.listVideos();
+
         }
     }
 };

@@ -1,8 +1,8 @@
-export const getPermit = async (secretJS, walletAddress, contract, chainId) => {
+export const getVideoCollectionPermit = async (secretJS, walletAddress, contractList, chainId) => {
     if (!secretJS)
         return null;
 
-    var permKey = `perm_${chainId}_${contract.address}_${walletAddress}`;
+    var permKey = `perm_${chainId}_${contractList.join("_")}_${walletAddress}`;
     var permit = null;
     try {
         // Try to load permit from local storage to avoid keplr confirmation in every visit
@@ -15,8 +15,8 @@ export const getPermit = async (secretJS, walletAddress, contract, chainId) => {
             const result = await secretJS.utils.accessControl.permit.sign(
                 walletAddress,
                 chainId,
-                "sample-scrt-nft-permit",
-                [contract.address],
+                "scrtFlix-permit",
+                contractList,
                 ["balance", "owner"]                   
             );
             permit = result;
@@ -34,15 +34,14 @@ export const getPermit = async (secretJS, walletAddress, contract, chainId) => {
     return permit;
 };
 
-export const getTokens = async (secretJS, walletAddress, contract, permit) => {
+export const getVideoTokens = async (secretJS, walletAddress, contractAddress, permit) => {
     if (!secretJS)
         return [];
 
     let tokens = [];
     try {
         tokens = await secretJS.query.compute.queryContract({
-            contractAddress: contract.address,
-            codeHash: contract.codeHash,
+            contractAddress,
             query: {
                 with_permit: {
                     query: {
