@@ -9,16 +9,16 @@ pub enum ReplyId {
 }
 
 pub fn instantiate_access_token(deps: DepsMut, reply: SubMsgResponse) -> StdResult<Response> {
-    if reply.events.len() == 0 {
-        return Err(StdError::generic_err(format!(
+    if reply.events.is_empty() {
+        return Err(StdError::generic_err(
             "Init didn't response with contract address",
-        )));
+        ));
     }
 
-    if reply.events[0].attributes.len() == 0 {
-        return Err(StdError::generic_err(format!(
+    if reply.events[0].attributes.is_empty() {
+        return Err(StdError::generic_err(
             "Init didn't response with contract address",
-        )));
+        ));
     }
 
     if reply.events[0].attributes[0].key != "contract_address" {
