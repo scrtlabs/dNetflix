@@ -35,4 +35,6 @@ To come more prepared to the workshop, we encourage you to set up you environmen
   * Infura (<https://infura.io/product/ipfs>) or
   * Other IPFS provider of your choice
 
-* Clone this repo
+* Clone the following repositories locally:
+  * [This one](https://github.com/scrtlabs/dNetflix)
+  * [mobile-video-example](https://github.com/scrtlabs/mobile-video-example)
