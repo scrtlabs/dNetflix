@@ -243,7 +243,7 @@ pub fn withdraw_token(
             amount,
             None,
             None,
-            256,
+            BLOCK_SIZE,
             snip20.hash,
             snip20.address,
         )?,
