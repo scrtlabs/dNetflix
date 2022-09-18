@@ -1,4 +1,7 @@
 # Decentralized Netflix Workshop
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/scrtlabs/dNetflix)
+
 ## Prepare for the workshop
 To come more prepared to the workshop, we encourage you to set up you environment beforehand:
 * Installations:
