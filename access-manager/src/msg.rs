@@ -1,7 +1,7 @@
 use cosmwasm_std::{Addr, Uint128};
 use secret_toolkit::{
     serialization::Base64JsonOf,
-    utils::types::{Token, WasmCode},
+    utils::types::{Contract, Token, WasmCode},
 };
 use serde::{Deserialize, Serialize};
 
@@ -65,8 +65,9 @@ pub enum QueryAnswer {
 #[serde(rename_all = "snake_case")]
 pub struct PublicVideo {
     id: u64,
-    access_token: String,
+    access_token: Contract,
     name: String,
+    image: String,
     royalty_info: snip721::types::RoyaltyInfo,
     price: Payment,
 }
@@ -75,8 +76,9 @@ impl PublicVideo {
     pub fn from(video: Video) -> Self {
         Self {
             id: video.id,
-            access_token: video.access_token.address,
+            access_token: video.access_token,
             name: video.info.name,
+            image: video.info.image_url,
             royalty_info: video.info.royalty_info,
             price: video.info.price,
         }

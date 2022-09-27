@@ -1,5 +1,5 @@
-import { getVideoCollectionPermit, getVideoTokens } from "../store/snip721-helper";
-import { SecretNetworkClient } from "secretjs";
+import { getVideoCollectionPermit, getVideoTokens } from '../store/snip721-helper';
+import { SecretNetworkClient } from 'secretjs';
 
 export const state = () => ({
     secretjs: null,
@@ -11,18 +11,17 @@ export const state = () => ({
 
     keplrLoading: false,
     noKeplr: false,
-    walletAddress: "",
+    walletAddress: '',
 
     accessManagerContract: {
         address: process.env.NUXT_ENV_CONTRACT,
         codeHash: process.env.NUXT_ENV_CONTRACT_CODE_HASH
     },
 
-
     loadingTokens: false,
     totalTokens: -1,
-    loadedTokens: 0,            
-    videoCollection: [],
+    loadedTokens: 0,
+    videoCollection: []
 });
 
 export const mutations = {
@@ -53,17 +52,17 @@ export const mutations = {
     },
     setVideoCollection(state, value) {
         state.videoCollection = value;
-    },
-}
+    }
+};
 
 export const actions = {
     initKeplr({ commit, state }) {
         const keplrConnect = async (addEvent) => {
             addEvent = typeof addEvent == 'undefined' ? true : addEvent;
-            
+
             // Add indication for UI when keplr is loading
-            commit('setKeplrLoading', true); 
-            
+            commit('setKeplrLoading', true);
+
             // Check if the browser has keplr wallet extension
             if (!window.keplr || !window.getEnigmaUtils || !window.getOfflineSignerOnlyAmino) {
                 console.log('Cannot find Keplr wallet');
@@ -77,7 +76,7 @@ export const actions = {
                 try {
                     await window.keplr.enable(state.chainId);
                 } catch (err) {
-                    if (err.message.indexOf("no chain info") != -1) {
+                    if (err.message.indexOf('no chain info') != -1) {
                         suggestChain = true;
                     } else {
                         return;
@@ -92,43 +91,43 @@ export const actions = {
                             chainId: state.chainId,
                             chainName: state.chainId,
                             stakeCurrency: {
-                              coinDenom: "SCRT",
-                              coinMinimalDenom: "uscrt",
-                              coinDecimals: 6,
-                              coinGeckoId: "secret",
+                                coinDenom: 'SCRT',
+                                coinMinimalDenom: 'uscrt',
+                                coinDecimals: 6,
+                                coinGeckoId: 'secret'
                             },
                             bip44: {
-                              coinType: 529,
+                                coinType: 529
                             },
                             bech32Config: {
-                              bech32PrefixAccAddr: "secret",
-                              bech32PrefixAccPub: "secret" + "pub",
-                              bech32PrefixValAddr: "secret" + "valoper",
-                              bech32PrefixValPub: "secret" + "valoperpub",
-                              bech32PrefixConsAddr: "secret" + "valcons",
-                              bech32PrefixConsPub: "secret" + "valconspub",
+                                bech32PrefixAccAddr: 'secret',
+                                bech32PrefixAccPub: 'secret' + 'pub',
+                                bech32PrefixValAddr: 'secret' + 'valoper',
+                                bech32PrefixValPub: 'secret' + 'valoperpub',
+                                bech32PrefixConsAddr: 'secret' + 'valcons',
+                                bech32PrefixConsPub: 'secret' + 'valconspub'
                             },
                             currencies: [
-                              {
-                                coinDenom: "SCRT",
-                                coinMinimalDenom: "uscrt",
-                                coinDecimals: 6,
-                                coinGeckoId: "secret",
-                              },
+                                {
+                                    coinDenom: 'SCRT',
+                                    coinMinimalDenom: 'uscrt',
+                                    coinDecimals: 6,
+                                    coinGeckoId: 'secret'
+                                }
                             ],
                             feeCurrencies: [
-                              {
-                                coinDenom: "SCRT",
-                                coinMinimalDenom: "uscrt",
-                                coinDecimals: 6,
-                                coinGeckoId: "secret",
-                              },
+                                {
+                                    coinDenom: 'SCRT',
+                                    coinMinimalDenom: 'uscrt',
+                                    coinDecimals: 6,
+                                    coinGeckoId: 'secret'
+                                }
                             ],
                             gasPriceStep: { low: 0.1, average: 0.25, high: 0.3 },
-                            features: ["secretwasm"],
+                            features: ['secretwasm']
                         });
                     }
-                  
+
                     const keplrOfflineSigner = window.getOfflineSignerOnlyAmino(state.chainId);
                     const signer = await keplrOfflineSigner.getAccounts();
                     commit('setWalletAddress', signer[0].address);
@@ -141,29 +140,27 @@ export const actions = {
                         encryptionUtils: window.getEnigmaUtils(state.chainId)
                     });
                     commit('setSecretJS', secretJS);
-                    
+
                     // Save an indication that the user already approved keplr so we won't
                     // Pop-up a keplr window before he pressed the "connect wallet" at least one time
                     window.localStorage.setItem('connectedBefore', '1');
-                    
-                    
+
                     // Listen to keplr events when wallet change
                     if (addEvent) {
                         window.addEventListener('keplr_keystorechange', () => {
                             keplrConnect(false);
-                            $nuxt.$emit('keystorechange');        
+                            $nuxt.$emit('keystorechange');
                         });
                     }
                 } catch (err) {
                     console.log(err.message);
                     console.log('Cannot connect to your wallet<br>Please make sure Keplr is installed properly');
                 }
-                commit('setKeplrLoading', false);                
+                commit('setKeplrLoading', false);
             }
-        
-        }
+        };
         keplrConnect();
-        //setTimeout(keplrConnect, 1000);        
+        //setTimeout(keplrConnect, 1000);
     },
 
     async getVideoCollection({ commit, state }) {
@@ -173,7 +170,7 @@ export const actions = {
         commit('setLoadedTokens', 0);
 
         const msg = { list_videos: { page: 0, page_size: 100 } };
-        var activeSecretjs = state.secretjs
+        var activeSecretjs = state.secretjs;
 
         let localCollection = [];
 
@@ -186,24 +183,26 @@ export const actions = {
         let videoList = list.list_videos.videos;
         commit('setTotalTokens', videoList.length);
 
+        console.log(JSON.stringify(videoList));
 
         let NFTList = []; // To create one permit for all the collections, avoiding Keplr pop-up on every permit request
         for (let i = 0; i < videoList.length; i++) {
-            localCollection.push( {
+            console.log(videoList[i]);
+            localCollection.push({
                 id: videoList[i].id,
-                name: videoList[i].info.name,
-                cover: videoList[i].info.image_url,
-                price: (videoList[i].info.price.amount / 1000000).toFixed(2),
+                name: videoList[i].name,
+                cover: videoList[i].image,
+                price: (videoList[i].price.amount / 1000000).toFixed(2),
                 token: {
                     address: videoList[i].access_token.address,
                     codeHash: videoList[i].access_token.hash
                 }
-            } );
+            });
             NFTList.push(videoList[i].access_token.address);
         }
 
         let videoPermit = await getVideoCollectionPermit(activeSecretjs, state.walletAddress, NFTList, state.chainId);
-        
+
         for (var i = 0; i < localCollection.length; i++) {
             try {
                 let tokens = await getVideoTokens(activeSecretjs, state.walletAddress, localCollection[i].token.address, videoPermit);
@@ -214,22 +213,22 @@ export const actions = {
                         with_permit: {
                             query: {
                                 nft_dossier: {
-                                token_id: tokens[0],
-                                },
+                                    token_id: tokens[0]
+                                }
                             },
                             permit: videoPermit
-                        },
+                        }
                     };
                     let singleToken = await activeSecretjs.query.compute.queryContract({
                         contractAddress: localCollection[i].token.address,
                         codeHash: localCollection[i].token.address.codeHash,
                         query: msg
                     });
-                    
-                    var media = singleToken.nft_dossier.private_metadata.extension?.media
+
+                    var media = singleToken.nft_dossier.private_metadata.extension?.media;
                     if (media) {
-                        for (let j = 0; j < media.length; j++ ) {
-                            if (media[j].file_type === "video" && media[j].extension === "mp4") {
+                        for (let j = 0; j < media.length; j++) {
+                            if (media[j].file_type === 'video' && media[j].extension === 'mp4') {
                                 localCollection[i].video_url = media[j].url;
                                 localCollection[i].video_key = media[j].authentication.key;
                                 break; // Take only the 1st for the demo
@@ -240,14 +239,12 @@ export const actions = {
             } catch (err) {
                 console.log(err);
             }
-            commit('setLoadedTokens', state.loadedTokens + 1);                
+            commit('setLoadedTokens', state.loadedTokens + 1);
         }
         commit('setVideoCollection', localCollection);
         commit('setIsLoadingTokens', false);
-
-
-    },
-}
+    }
+};
 
 var mobileAndTabletCheck = function () {
     let check = false;
@@ -279,13 +276,13 @@ export const getters = {
 
     getKeplrLoading(state) {
         return state.keplrLoading;
-    },    
+    },
     getSecretJS(state) {
         return state.secretjs;
-    },    
+    },
     getChainId(state) {
         return state.chainId;
-    }, 
+    },
     isLoadingTokens(state) {
         return state.loadingTokens;
     },
@@ -297,5 +294,5 @@ export const getters = {
     },
     getVideoCollection(state) {
         return state.videoCollection;
-    },
-}
+    }
+};
